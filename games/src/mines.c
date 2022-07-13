@@ -1,34 +1,50 @@
+#include "bobj.h"
 #include "games.h"
 
 #include <malloc.h>
 
 typedef struct {
-    
-} minesweeper_i;
+    game_v super;
+} minesweeper_v;
 
 typedef struct minesweeper_t {
     game_t super;
 } minesweeper_t;
 
-static int ms_run(game_t *game, WINDOW *win) {
+static int minesweeper_run(game_t *game, WINDOW *win) {
     minesweeper_t *self = (minesweeper_t*)game;
     return 0;
 }
 
-static void ms_drop(obj_t *obj) {
+static void minesweeper_drop(bobj_t *obj) {
     minesweeper_t *self = (minesweeper_t*)obj;
+    bobj_drop((bobj_t*)&self->super);
 }
 
-static game_i MINESWEEPER_GAME_IMPL = {
-    .run = ms_run,
-    .super = (obj_i){
-        .drop = ms_drop,
+static game_v MINESWEEPER_GAME_IMPL = {
+    .run = minesweeper_run,
+    .super = (bobj_v){
+        .drop = minesweeper_drop,
     },
 };
 
+vft_creator(
+    minesweeper_v,
+    minesweeper_v_impl,
+    (minesweeper_v){
+        .super = (game_v){
+            .super = (bobj_v){
+                .size = sizeof(minesweeper_t) - sizeof(minesweeper_v*),
+                .drop = minesweeper_drop,
+            },
+            .run = minesweeper_run,
+        }
+    }
+)
+
 game_t* minesweeper(void) {
     minesweeper_t *ms = malloc(sizeof(*ms));
-    vft_cast(game_i, ms) = &MINESWEEPER_GAME_IMPL;
+    vft_cast(minesweeper_v, ms) = minesweeper_v_impl();
     ms->super.name = "Minesweeper";
     return (game_t*)ms;
 }

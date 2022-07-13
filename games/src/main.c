@@ -17,7 +17,7 @@ int main(int argc, const char* argv[]) {
     engine_run(&engine);
     endwin();
 
-    drop((obj_t*)&engine);
+    bobj_drop((bobj_t*)&engine);
     
     return 0;
 }

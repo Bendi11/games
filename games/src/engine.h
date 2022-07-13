@@ -7,14 +7,14 @@
 
 typedef struct game_t game_t;
 
-typedef struct game_i {
-    obj_i super;
+typedef struct game_v {
+    bobj_v super;
     /** \brief Function to run for the game */
     int (*run)(game_t*,WINDOW*);
-} game_i;
+} game_v;
 
 typedef struct game_t {
-    obj_t super;
+    bobj_t super;
     char *name;
 } game_t;
 
@@ -26,7 +26,7 @@ typedef struct gamelist_s {
 } gamelist_t;
 
 typedef struct engine_s {
-    obj_t super;
+    bobj_t super;
     game_t **games;
     uint32_t games_count;
     uint32_t games_cap;

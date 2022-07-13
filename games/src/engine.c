@@ -14,10 +14,10 @@ void engine_add(engine_t *self, game_t *game) {
     self->games_count += 1;
 }
 
-void engine_drop(obj_t *erased_self) {
+void engine_drop(bobj_t *erased_self) {
     engine_t *self = (engine_t*)erased_self;
     while(self->games_count > 0) {
-        drop((obj_t*)self->games[self->games_count - 1]);
+        bobj_drop((bobj_t*)self->games[self->games_count - 1]);
         self->games_count -= 1;
     }
     free(self->games);
@@ -55,19 +55,19 @@ int engine_run(engine_t *self) {
     return 0;
 }
 
-static obj_i ENGINE_OBJ_IMPL = {
+static bobj_v ENGINE_OBJ_IMPL = {
     .drop = engine_drop,
 };
 
 void engine_new(engine_t *self) {
-    vft_cast(obj_i, self) = &ENGINE_OBJ_IMPL;
+    vft_cast(bobj_v, self) = &ENGINE_OBJ_IMPL;
     self->games = calloc(sizeof(game_t*), 5);
     self->games_count = 0;
     self->games_cap = 5;
 }
 
 int game_run(game_t *game, WINDOW *win) {
-    return vft_cast(game_i, game)->run(game, win);
+    return vft_cast(game_v, game)->run(game, win);
 }
 
 void game_new(game_t *game, char *name) {

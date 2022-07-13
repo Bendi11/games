@@ -28,7 +28,7 @@ static game_i MINESWEEPER_GAME_IMPL = {
 
 game_t* minesweeper(void) {
     minesweeper_t *ms = malloc(sizeof(*ms));
-    PUN(game_i, ms) = &MINESWEEPER_GAME_IMPL;
+    vft_cast(game_i, ms) = &MINESWEEPER_GAME_IMPL;
     ms->super.name = "Minesweeper";
     return (game_t*)ms;
 }

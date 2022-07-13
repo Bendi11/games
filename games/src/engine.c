@@ -4,9 +4,6 @@
 #include <malloc.h>
 #include <menu.h>
 
-void drop(obj_t *obj) {
-    obj->vft->drop(obj);
-}
 
 void engine_add(engine_t *self, game_t *game) {
     if(self->games_count == self->games_cap) {
@@ -63,14 +60,14 @@ static obj_i ENGINE_OBJ_IMPL = {
 };
 
 void engine_new(engine_t *self) {
-    PUN(obj_i, self) = &ENGINE_OBJ_IMPL;
+    vft_cast(obj_i, self) = &ENGINE_OBJ_IMPL;
     self->games = calloc(sizeof(game_t*), 5);
     self->games_count = 0;
     self->games_cap = 5;
 }
 
 int game_run(game_t *game, WINDOW *win) {
-    return PUN(game_i, game)->run(game, win);
+    return vft_cast(game_i, game)->run(game, win);
 }
 
 void game_new(game_t *game, char *name) {

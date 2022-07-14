@@ -6,7 +6,6 @@
 #include <menu.h>
 #include <string.h>
 
-
 void engine_add(engine_t *self, game_t *game) {
     if(self->games_count == self->games_cap) {
         self->games_cap *= 2;
@@ -63,7 +62,8 @@ vft_creator(
     (engine_v){
         .super = (bobj_v){
             .drop = engine_drop,
-            .size = sizeof(engine_t) - sizeof(engine_v*)
+            .size = sizeof(engine_t) - sizeof(engine_v*),
+            .name = "engine",
         }
     }    
 )
@@ -95,7 +95,8 @@ vft_creator(
     (game_v){
         .super = (bobj_v){
             .drop = game_drop,
-            .size = sizeof(game_t) - sizeof(game_v)
+            .size = sizeof(game_t) - sizeof(game_v),
+            .name = "game",
         },
         .run = (void*)bobj_virtual,
     }

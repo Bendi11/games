@@ -1,5 +1,6 @@
 set(SRC
     "src/bobj.c"
+    "src/bobj/bint.c"
 )
 
 add_library(bobj STATIC ${SRC})

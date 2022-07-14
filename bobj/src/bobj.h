@@ -2,11 +2,14 @@
 
 #include <stddef.h>
 
-#if __has_attribute(access)
+#if defined(__clang__) || defined(__GNUC__)
 #define BOBJ_READONLY(...) __attribute__((access(read_only, __VA_ARGS__)))
+#define BOBJ_NORETURN __attribute__((__noreturn__))
 #else
 #define BOBJ_READONLY(...)
+#define BOBJ_NORETURN
 #endif
+
 
 /**
  * Cast a pointer to an instance of a class to a pointer to the given vtable
@@ -19,13 +22,15 @@
 
 #define vft_creator(ty, fn_name, ...)                                      \
 static ty * _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__) = NULL;           \
-ty* fn_name (void) {                                                       \
-    if(_BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__) == NULL) {             \
-        _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__) = malloc(sizeof(ty)); \
-        *_BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__) = __VA_ARGS__;       \
-    }                                                                      \
+ty* fn_name##_populate(void);                                              \
+ty* (*fn_name)(void) = fn_name##_populate;                                                      \
+ty* fn_name##_get(void) { return _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__); } \
+ty* fn_name##_populate(void) {                                                 \
+    _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__) = malloc(sizeof(ty));     \
+    *_BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__) = __VA_ARGS__;           \
+    fn_name = fn_name##_get;                                               \
     return _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__);                   \
-}
+}                                                                          
 
 typedef struct bobj_t bobj_t;
 typedef struct bobj_v {
@@ -58,7 +63,7 @@ typedef struct bint_v {
 } bint_v;
 
 /** \brief Get the default vtable for the bint_t type */
-bint_v *bint_v_impl();
+extern bint_v* (*bint_v_impl)(void);
 
 typedef struct bint_t {
     bobj_t super;
@@ -66,3 +71,9 @@ typedef struct bint_t {
 } bint_t;
 
 void bint_new(bint_t *, int val);
+
+/** 
+ * \brief Function used to mark a class method as virtual, i.e. it must be overriden by a base class. 
+ * Any call to this method will result in a panic with a short message written to stderr
+ */
+BOBJ_NORETURN void bobj_virtual();

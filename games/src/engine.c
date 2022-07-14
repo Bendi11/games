@@ -1,8 +1,10 @@
 #include "engine.h"
+#include "bobj.h"
 
 #include <curses.h>
 #include <malloc.h>
 #include <menu.h>
+#include <string.h>
 
 
 void engine_add(engine_t *self, game_t *game) {
@@ -55,12 +57,19 @@ int engine_run(engine_t *self) {
     return 0;
 }
 
-static bobj_v ENGINE_OBJ_IMPL = {
-    .drop = engine_drop,
-};
+vft_creator(
+    engine_v,
+    engine_v_impl,
+    (engine_v){
+        .super = (bobj_v){
+            .drop = engine_drop,
+            .size = sizeof(engine_t) - sizeof(engine_v*)
+        }
+    }    
+)
 
 void engine_new(engine_t *self) {
-    vft_cast(bobj_v, self) = &ENGINE_OBJ_IMPL;
+    vft_cast(engine_v, self) = engine_v_impl();
     self->games = calloc(sizeof(game_t*), 5);
     self->games_count = 0;
     self->games_cap = 5;
@@ -70,6 +79,25 @@ int game_run(game_t *game, WINDOW *win) {
     return vft_cast(game_v, game)->run(game, win);
 }
 
-void game_new(game_t *game, char *name) {
-
+void game_drop(bobj_t *obj) {
+    game_t *self = (game_t*)obj;
+    free(self->name);
 }
+
+void game_new(game_t *game, char *name) {
+    vft_cast(game_v, game) = game_v_impl();
+    game->name = strdup(name);
+}
+
+vft_creator(
+    game_v,
+    game_v_impl,
+    (game_v){
+        .super = (bobj_v){
+            .drop = game_drop,
+            .size = sizeof(game_t) - sizeof(game_v)
+        },
+        .run = (void*)bobj_virtual,
+    }
+)
+

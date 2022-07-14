@@ -13,10 +13,13 @@ typedef struct game_v {
     int (*run)(game_t*,WINDOW*);
 } game_v;
 
+extern game_v* (*game_v_impl)(void);
+
 typedef struct game_t {
     bobj_t super;
     char *name;
 } game_t;
+
 
 int game_run(game_t *game, WINDOW *win);
 void game_new(game_t *game, char *name);
@@ -24,6 +27,10 @@ void game_new(game_t *game, char *name);
 typedef struct gamelist_s {
  
 } gamelist_t;
+
+typedef struct {
+    bobj_v super;
+} engine_v;
 
 typedef struct engine_s {
     bobj_t super;

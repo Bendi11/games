@@ -1,6 +1,8 @@
 #include "bobj.h"
 
 #include <malloc.h>
+#include <stdlib.h>
+
 
 static void bint_drop(bobj_t *obj) {}
 
@@ -34,4 +36,9 @@ vft_creator(
 void bint_new(bint_t *self, int val) {
     vft_cast(bint_v, self) = bint_v_impl();
     self->val = val;
+}
+
+BOBJ_NORETURN void bobj_virtual() {
+    fprintf(stderr, "Invoked virtual method"); 
+    exit(-1);
 }

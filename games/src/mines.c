@@ -18,15 +18,11 @@ static int minesweeper_run(game_t *game, WINDOW *win) {
 
 static void minesweeper_drop(bobj_t *obj) {
     minesweeper_t *self = (minesweeper_t*)obj;
-    bobj_drop((bobj_t*)&self->super);
-}
 
-static game_v MINESWEEPER_GAME_IMPL = {
-    .run = minesweeper_run,
-    .super = (bobj_v){
-        .drop = minesweeper_drop,
-    },
-};
+    game_v_impl()
+        ->super
+        .drop((bobj_t*)&self->super); 
+}
 
 vft_creator(
     minesweeper_v,
@@ -44,7 +40,7 @@ vft_creator(
 
 game_t* minesweeper(void) {
     minesweeper_t *ms = malloc(sizeof(*ms));
+    game_new(&ms->super, "Minesweeper");
     vft_cast(minesweeper_v, ms) = minesweeper_v_impl();
-    ms->super.name = "Minesweeper";
     return (game_t*)ms;
 }

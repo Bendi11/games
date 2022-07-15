@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 void bobj_drop(bobj_t *obj) {
-    vft_cast(bobj_v, obj)->drop(obj);
+    vft_cast(bobj_c, obj)->drop(obj);
 }
 
 BOBJ_NORETURN void bobj_virtual() {

@@ -11,7 +11,7 @@
 typedef struct minesweeper_t minesweeper_t;
 
 typedef struct {
-    game_v super;
+    game_c super;
     void (*reveal)(minesweeper_t*, uint16_t, uint16_t, bool);
     void (*reset)(minesweeper_t*);
 } minesweeper_v;
@@ -114,16 +114,18 @@ static void minesweeper_reset(minesweeper_t *self) {
 
 static void minesweeper_rendertile(minesweeper_t *self, uint16_t idx) {
     tile_t *tile = &self->board[idx];
-    if(tile->flagged) {
-        term_fg(flag_fg);
-    }
     if(!tile->revealed) {
-        term_bg(darkgrey);
+        term_attr((term_attr_t){.reset_all = true});
+        //term_bg(darkgrey);
     } else {
         term_attr((term_attr_t){.bold = true});
         term_fg(neighbor_colors[tile->neighbors]);
         term_bg(grey);
     }
+    if(tile->flagged) {
+        term_fg(flag_fg);
+    }
+
     term_cursor(idx % self->cols, idx / self->cols);
     fputc(tile->flagged ? 'F' :
         tile->revealed && tile->neighbors != 0 ?
@@ -131,7 +133,7 @@ static void minesweeper_rendertile(minesweeper_t *self, uint16_t idx) {
            ' ',
         stdout
     );
-    term_attr((term_attr_t){.reset = true});
+    term_attr((term_attr_t){.reset_style = true});
 }
 
 static void minesweeper_reveal(minesweeper_t *self, uint16_t x, uint16_t y, bool autoreveal) {
@@ -291,7 +293,7 @@ static void minesweeper_drop(bobj_t *obj) {
     minesweeper_t *self = (minesweeper_t*)obj;
     free(self->board);
 
-    game_v_impl()
+    game_c_impl()
         ->super
         .drop((bobj_t*)&self->super); 
 }
@@ -300,8 +302,8 @@ vft_creator(
     minesweeper_v,
     minesweeper_v_impl,
     (minesweeper_v){
-        .super = (game_v){
-            .super = (bobj_v){
+        .super = (game_c){
+            .super = (bobj_c){
                 .size = sizeof(minesweeper_t) - sizeof(minesweeper_v*),
                 .drop = minesweeper_drop,
             },

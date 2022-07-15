@@ -8,13 +8,13 @@
 
 typedef struct game_t game_t;
 
-typedef struct game_v {
-    bobj_v super;
+typedef struct game_c {
+    bobj_c super;
     /** \brief Function to run for the game */
     int (*run)(game_t*);
-} game_v;
+} game_c;
 
-extern game_v* (*game_v_impl)(void);
+extern game_c* (*game_c_impl)(void);
 
 typedef struct game_t {
     bobj_t super;
@@ -30,8 +30,8 @@ typedef struct gamelist_s {
 } gamelist_t;
 
 typedef struct {
-    bobj_v super;
-} engine_v;
+    bobj_c super;
+} engine_c;
 
 typedef struct engine_s {
     bobj_t super;

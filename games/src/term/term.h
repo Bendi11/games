@@ -12,7 +12,8 @@ typedef struct term_attr_s {
     bool bold : 1;
     bool underline : 1;
     bool italic : 1;
-    bool reset : 1;
+    bool reset_style : 1;
+    bool reset_all : 1;
 } term_attr_t;
 
 /** An RGB color structure */

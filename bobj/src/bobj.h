@@ -14,8 +14,8 @@
 
 
 /**
- * Cast a pointer to an instance of a class to a pointer to the given vtable
- * that the class extends
+ * Cast a pointer to an instance of a class to a pointer to a class structure
+ * that the instance is
  */
 #define vft_cast(ty, ...) (*( ty **)(__VA_ARGS__))
 
@@ -38,20 +38,20 @@ ty* fn_name##_populate(void) {                                                  
 #define bobj_instanceof(ty, ...) (((void*)ty) == (*(void**)__VA_ARGS__))
 
 typedef struct bobj_t bobj_t;
-typedef struct bobj_v {
+typedef struct bobj_c {
     /** \brief Free any memory associated with this object and cleanup all resources */
     void (*drop)(bobj_t*);
     /** \brief Size of an instance of this class in bytes */
     size_t size;
     /** \brief Name of this class */
     char *name;
-} bobj_v;
+} bobj_c;
 
 /**
  * Base class for all objects in the object system
  */
 typedef struct bobj_t {
-    bobj_v *vft;
+    bobj_c *vft;
 } bobj_t;
 
 /** \brief Run the destructor of the given object */

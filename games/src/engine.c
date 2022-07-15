@@ -45,26 +45,26 @@ int engine_run(engine_t *self) {
 }
 
 vft_creator(
-    engine_v,
-    engine_v_impl,
-    (engine_v){
-        .super = (bobj_v){
+    engine_c,
+    engine_c_impl,
+    (engine_c){
+        .super = (bobj_c){
             .drop = engine_drop,
-            .size = sizeof(engine_t) - sizeof(engine_v*),
+            .size = sizeof(engine_t) - sizeof(engine_c*),
             .name = "engine",
         }
     }    
 )
 
 void engine_new(engine_t *self) {
-    vft_cast(engine_v, self) = engine_v_impl();
+    vft_cast(engine_c, self) = engine_c_impl();
     self->games = calloc(sizeof(game_t*), 5);
     self->games_count = 0;
     self->games_cap = 5;
 }
 
 int game_run(game_t *game) {
-    return vft_cast(game_v, game)->run(game);
+    return vft_cast(game_c, game)->run(game);
 }
 
 void game_drop(bobj_t *obj) {
@@ -73,17 +73,17 @@ void game_drop(bobj_t *obj) {
 }
 
 void game_new(game_t *game, char *name) {
-    vft_cast(game_v, game) = game_v_impl();
+    vft_cast(game_c, game) = game_c_impl();
     game->name = strdup(name);
 }
 
 vft_creator(
-    game_v,
-    game_v_impl,
-    (game_v){
-        .super = (bobj_v){
+    game_c,
+    game_c_impl,
+    (game_c){
+        .super = (bobj_c){
             .drop = game_drop,
-            .size = sizeof(game_t) - sizeof(game_v),
+            .size = sizeof(game_t) - sizeof(game_c),
             .name = "game",
         },
         .run = (void*)bobj_virtual,

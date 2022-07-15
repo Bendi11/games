@@ -63,11 +63,12 @@ void term_raw() {
 void term_attr(term_attr_t attrs) {
     fprintf(
         stdout,
-        CSI "%s%s%s%sm",
-        attrs.reset ? "22" : "",
+        CSI "%s%s%s%s%sm",
+        attrs.reset_style ? "22" : "",
         attrs.bold ? ";1" : "",
         attrs.italic ? ";3" : "",
-        attrs.underline ? ";4" : ""
+        attrs.underline ? ";4" : "",
+        attrs.reset_all ? "0" : ""
     );
 }
 

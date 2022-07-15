@@ -1,9 +1,8 @@
 #include "engine.h"
 #include "bobj.h"
+#include "term/term.h"
 
-#include <curses.h>
 #include <malloc.h>
-#include <menu.h>
 #include <string.h>
 
 void engine_add(engine_t *self, game_t *game) {
@@ -25,17 +24,11 @@ void engine_drop(bobj_t *erased_self) {
 }
 
 int engine_run(engine_t *self) {
-    ITEM **games = calloc(sizeof(ITEM*), self->games_count);
-    MENU *game_menu = NULL;
-    for(size_t i = 0; i < self->games_count; ++i) {
-        games[i] = new_item(self->games[i]->name, "");
-    }
-    game_menu = new_menu(games);
-    post_menu(game_menu);
-    refresh();
+    
+    game_run(self->games[0]);
     int ch = 0;
-    while((ch = getch()) != 27) {
-        switch(ch) {
+    while((ch = term_readch()) != 27) {
+        /*switch(ch) {
             case KEY_DOWN: menu_driver(game_menu, REQ_DOWN_ITEM); break;
             case KEY_UP: menu_driver(game_menu, REQ_UP_ITEM); break;
             case '\n': {
@@ -45,13 +38,8 @@ int engine_run(engine_t *self) {
                 game_run(self->games[selected], stdscr);
                 return 0;
             } break;
-        }
+        }*/
     }
-
-    for(size_t i = 0; i < self->games_count; ++i) {
-        free_item(games[i]);
-    }
-    free_menu(game_menu);
     
     return 0;
 }
@@ -75,8 +63,8 @@ void engine_new(engine_t *self) {
     self->games_cap = 5;
 }
 
-int game_run(game_t *game, WINDOW *win) {
-    return vft_cast(game_v, game)->run(game, win);
+int game_run(game_t *game) {
+    return vft_cast(game_v, game)->run(game);
 }
 
 void game_drop(bobj_t *obj) {

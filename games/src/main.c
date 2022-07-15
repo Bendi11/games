@@ -1,25 +1,21 @@
-#include <ncurses.h>
 #include <stdio.h>
 #include <locale.h>
 
 #include "engine.h"
 #include "games.h"
+#include "term/term.h"
 
 int main(int argc, const char* argv[]) {
-    ESCDELAY = 0;
-    initscr();
     setlocale(LC_ALL, "");
-    raw();
-    noecho();
-    keypad(stdscr, TRUE);
-    
+    term_start();
+    term_raw();
+
+
     engine_t engine;
     engine_new(&engine);
     engine_add(&engine, minesweeper());
     engine_run(&engine);
-    endwin();
-
-    bobj_drop((bobj_t*)&engine);
     
+    bobj_drop((bobj_t*)&engine);
     return 0;
 }

@@ -1,10 +1,12 @@
 #include "bobj.h"
 #include "games.h"
+#include "term/term.h"
 
-#include <ncurses.h>
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <time.h>
 
 typedef struct minesweeper_t minesweeper_t;
 
@@ -16,7 +18,7 @@ typedef struct {
 
 typedef struct { uint16_t x; uint16_t y; } pos;
 
-static uint8_t BOMB = 255;
+static uint8_t BOMB = 9;
 #define IDX(x, y) (((y) * self->cols) + (x))
 
 typedef struct {
@@ -34,23 +36,33 @@ typedef enum {
 typedef struct minesweeper_t {
     game_t super;
     pos cursor;
+    uint8_t cursor_near;
+    uint8_t cursor_flagged;
     tile_t *board;
     gamestate_e state;
     uint16_t cols;
     uint16_t lines;
-    WINDOW *win;
+    uint16_t bombs;
+    uint16_t unrevealed;
 } minesweeper_t;
 
-#define COLOR_GREY 8
-#define COLOR_DARKGREY 9
-#define COLOR_DARKBLUE 10
-#define COLOR_DARKRED 11
-#define GREY_PAIR 10
-#define DARKGREY_PAIR 11
-#define CURSOR_PAIR 12
-#define FLAG_PAIR 13
+static term_color_t flag_fg = {255, 50, 50};
+static term_color_t grey = {100, 100, 100};
+static term_color_t darkgrey = {50, 50, 50};
+static term_color_t cursor = {255, 255, 0};
 
-#define COLORS_OFFSET 1
+static term_color_t neighbor_colors[10] = {
+    {0, 0, 0},
+    {50, 100, 255},
+    {25, 150, 25},
+    {255, 0, 0},
+    {50, 75, 150},
+    {200, 50, 50},
+    {0, 150, 150},
+    {0, 0, 0},
+    {50, 50, 50},
+    {255, 0, 0},
+};
 
 #define MAX_NEIGHBORS 8
 #define INVALID_IDX ((uint16_t)-1)
@@ -75,13 +87,17 @@ static void minesweeper_neighbors(minesweeper_t *self, uint16_t x, uint16_t y, u
 }
 
 static void minesweeper_reset(minesweeper_t *self) {
+    srand(time(NULL));
     self->state = STATE_RUNNING;
+    self->bombs = 0;
     memset(self->board, 0, sizeof(tile_t) * self->lines * self->cols);
     for(uint16_t i = 0; i < self->lines * self->cols; ++i) {
         if(rand() < RAND_MAX / 10) {
             self->board[i].neighbors = BOMB; 
+            self->bombs += 1;
         }
     }
+    self->unrevealed = self->lines * self->cols;
 
     uint16_t neighbors[MAX_NEIGHBORS + 1];
     for(uint16_t i = 0; i < self->lines * self->cols; ++i) {
@@ -97,33 +113,38 @@ static void minesweeper_reset(minesweeper_t *self) {
 }
 
 static void minesweeper_rendertile(minesweeper_t *self, uint16_t idx) {
-    attrset(A_NORMAL);
     tile_t *tile = &self->board[idx];
     if(tile->flagged) {
-        attrset(COLOR_PAIR(FLAG_PAIR));
-    } else if(!tile->revealed) {
-        attrset(COLOR_PAIR(GREY_PAIR));
-    } else {
-        attrset(COLOR_PAIR(COLORS_OFFSET + tile->neighbors) | A_NORMAL);
+        term_fg(flag_fg);
     }
-
-    mvwaddch(self->win, idx / self->cols, idx % self->cols,
-        tile->flagged ? 'F' :
-             tile->revealed && tile->neighbors != 0 ?
-                (tile->neighbors == BOMB ? 'B' : tile->neighbors + '0') :
-                ' '
+    if(!tile->revealed) {
+        term_bg(darkgrey);
+    } else {
+        term_attr((term_attr_t){.bold = true});
+        term_fg(neighbor_colors[tile->neighbors]);
+        term_bg(grey);
+    }
+    term_cursor(idx % self->cols, idx / self->cols);
+    fputc(tile->flagged ? 'F' :
+        tile->revealed && tile->neighbors != 0 ?
+           (tile->neighbors == BOMB ? 'B' : tile->neighbors + '0') :
+           ' ',
+        stdout
     );
+    term_attr((term_attr_t){.reset = true});
 }
-
 
 static void minesweeper_reveal(minesweeper_t *self, uint16_t x, uint16_t y, bool autoreveal) {
     tile_t *current = &self->board[IDX(x, y)];
     if(current->flagged || (current->revealed && autoreveal)) { return; }
     current->revealed = true;
+    self->unrevealed -= 1;
     minesweeper_rendertile(self, IDX(x, y));
     if(current->neighbors == BOMB) {
         self->state = STATE_LOST;
-
+        return;
+    } else if(self->unrevealed == self->bombs) {
+        self->state = STATE_WIN;
         return;
     }
 
@@ -141,71 +162,103 @@ static void minesweeper_reveal(minesweeper_t *self, uint16_t x, uint16_t y, bool
     }
 }
 
-static int minesweeper_run(game_t *game, WINDOW *win) {
-    minesweeper_t *self = (minesweeper_t*)game;
-    self->win = win;
-    wclear(win);
-    start_color();
-    init_color(COLOR_GREY, 500, 500, 500);
-    init_color(COLOR_DARKGREY, 250, 250, 250);
-    init_color(COLOR_DARKBLUE, 250, 250, 1000);
-    init_color(COLOR_DARKRED, 500, 250, 250);
-    init_color(COLOR_GREEN, 100, 750, 100);
-    init_color(COLOR_BLUE, 250, 250, 750);
-    init_color(COLOR_RED, 750, 200, 200);
-      
-    init_pair(COLORS_OFFSET + 0, COLOR_DARKGREY, COLOR_GREY);
-    init_pair(COLORS_OFFSET + 1, COLOR_BLUE, COLOR_GREY);
-    init_pair(COLORS_OFFSET + 2, COLOR_GREEN, COLOR_GREY);
-    init_pair(COLORS_OFFSET + 3, COLOR_RED, COLOR_GREY);
-    init_pair(COLORS_OFFSET + 4, COLOR_DARKBLUE, COLOR_GREY);
-    init_pair(COLORS_OFFSET + 5, COLOR_DARKRED, COLOR_GREY);
-    init_pair(COLORS_OFFSET + 6, COLOR_CYAN, COLOR_GREY);
-    init_pair(COLORS_OFFSET + 7, COLOR_BLACK, COLOR_GREY);
-    init_pair(COLORS_OFFSET + 8, COLOR_DARKGREY, COLOR_GREY);
+static void minesweeper_cursor_near(minesweeper_t *self) {
+    self->cursor_flagged = 0;
+    self->cursor_near = 0;
+    uint16_t neighbors[MAX_NEIGHBORS + 1];
+    minesweeper_neighbors(self, self->cursor.x, self->cursor.y, neighbors);
+    for(uint8_t i = 0; i < MAX_NEIGHBORS && neighbors[i] != INVALID_IDX; ++i) {
+        tile_t *tile = &self->board[neighbors[i]];
+        if(!tile->revealed) {
+            self->cursor_near += 1;
+            if(tile->flagged) {
+                self->cursor_flagged += 1;
+            }
+        }
+    }
+}
 
-    init_pair(GREY_PAIR, COLOR_GREY, COLOR_DARKGREY);
-    init_pair(DARKGREY_PAIR, COLOR_DARKGREY, COLOR_GREY);
-    init_pair(CURSOR_PAIR, COLOR_YELLOW, COLOR_GREY);
-    init_pair(FLAG_PAIR, COLOR_RED, COLOR_DARKGREY);
-    curs_set(FALSE);
+/** \brief Re-render all text around the cursor, highlighted if it is in range of the cursor and unrevealed */
+static void minesweeper_patchcursor(minesweeper_t *self, bool highlight) {
+    if(highlight) { minesweeper_cursor_near(self); }
     
+    uint16_t neighbors[MAX_NEIGHBORS + 1];
+    minesweeper_neighbors(self, self->cursor.x, self->cursor.y, neighbors);
+    for(uint8_t i = 0; i < MAX_NEIGHBORS && neighbors[i] != INVALID_IDX; ++i) {
+        uint16_t idx = neighbors[i];
+        if(highlight &&
+            self->board[IDX(self->cursor.x, self->cursor.y)].revealed &&
+            !self->board[idx].revealed &&
+            !self->board[idx].flagged
+        ) {
+            term_bg(
+                (self->board[IDX(self->cursor.x, self->cursor.y)].neighbors == self->cursor_flagged) ?
+                    (term_color_t){.r = 25, .g = 100, .b = 75} : 
+                    (self->cursor_near == self->board[IDX(self->cursor.x, self->cursor.y)].neighbors) ?
+                        (term_color_t){.r = 150, .g = 50, .b = 50} :
+                        (term_color_t){.r = 100, .g = 100, .b = 50}
+            );
+            term_cursor(idx % self->cols, idx / self->cols);
+            fputc(' ', stdout);
+        } else {
+            minesweeper_rendertile(self, idx);
+        }
+    }
+}
+
+static int minesweeper_run(game_t *game) {
+    minesweeper_t *self = (minesweeper_t*)game;
+    term_clear();
+    term_cursorshow(false);
+
     for(uint16_t i = 0; i < self->lines * self->cols; ++i) {
         minesweeper_rendertile(self, i);
     }
 
     int ch = 0;
-    timeout(500);
     bool flash = false;
     do {
         switch(ch) {
-            case KEY_UP: 
-                minesweeper_rendertile(self, IDX(self->cursor.x, self->cursor.y));
+            case TERM_UP:
+                minesweeper_patchcursor(self, false);
                 if(self->cursor.y > 0) { self->cursor.y -= 1; }
+                minesweeper_patchcursor(self, true);
             break;
-            case KEY_DOWN: 
-                minesweeper_rendertile(self, IDX(self->cursor.x, self->cursor.y));
+            case TERM_DOWN:
+                minesweeper_patchcursor(self, false);
                 if(self->cursor.y < self->lines) { self->cursor.y += 1; } 
+                minesweeper_patchcursor(self, true);
             break;
-            case KEY_LEFT:
-                minesweeper_rendertile(self, IDX(self->cursor.x, self->cursor.y));
+            case TERM_LEFT:
+                minesweeper_patchcursor(self, false);
                 if(self->cursor.x > 0) { self->cursor.x -= 1; }
+                minesweeper_patchcursor(self, true);
             break;
-            case KEY_RIGHT:
-                minesweeper_rendertile(self, IDX(self->cursor.x, self->cursor.y));
-                if(self->cursor.x < self->cols) { self->cursor.x += 1; } break;
+            case TERM_RIGHT:
+                minesweeper_patchcursor(self, false);
+                if(self->cursor.x < self->cols) { self->cursor.x += 1; }
+                minesweeper_patchcursor(self, true);
             break;
             case '\n':
             case ' ': minesweeper_reveal(self, self->cursor.x, self->cursor.y, false); break;
             case 'f': {
                 tile_t *selected = &self->board[IDX(self->cursor.x, self->cursor.y)];
-                if(selected->revealed) break;
-                selected->flagged = !selected->flagged;
+                if(!selected->revealed) {
+                    selected->flagged = !selected->flagged;
+                } else if(self->cursor_near == self->board[IDX(self->cursor.x, self->cursor.y)].neighbors) {
+                    uint16_t neighbors[MAX_NEIGHBORS + 1];
+                    minesweeper_neighbors(self, self->cursor.x, self->cursor.y, neighbors);
+                    for(uint8_t i = 0; i < MAX_NEIGHBORS && neighbors[i] != INVALID_IDX; ++i) {
+                        !self->board[neighbors[i]].revealed && (self->board[neighbors[i]].flagged = true);
+                        minesweeper_rendertile(self, neighbors[i]);
+                    }
+                }
             } break;
-            case ERR: {
+            default: {
                 if(flash) {
                     minesweeper_rendertile(self, IDX(self->cursor.x, self->cursor.y));
                     flash = !flash;
+                    term_refresh();
                     continue;
                 }
                 flash = !flash;
@@ -215,27 +268,22 @@ static int minesweeper_run(game_t *game, WINDOW *win) {
         if(self->state != STATE_RUNNING) {
             char *text = (self->state == STATE_WIN) ? "You Win!" : "You Lose!";
             size_t len = strlen(text);
-            mvwprintw(win, self->lines / 2, self->cols / 2 - len / 2, "%s", text);
-            timeout(-1);
-            getch();
-            timeout(500);
+            term_cursor(self->cols / 2 - len / 2, self->lines / 2);
+            fputs(text, stdout);
+            term_refresh();
+            term_readch();
             minesweeper_reset(self);
             for(uint16_t i = 0; i < self->lines * self->cols; ++i) {
                 minesweeper_rendertile(self, i);
             }
         }
 
-        //for(uint16_t i = 0; i < self->lines * self->cols; ++i) {
-        //    minesweeper_rendertile(self, i);
-        //}
-
-        wmove(win, self->cursor.y, self->cursor.x);
-        attrset(COLOR_PAIR(CURSOR_PAIR) | A_BOLD | A_BLINK);
-        waddch(win, 'X');
-        refresh();
-    } while((ch = getch()) != 27);
-
-
+        term_cursor(self->cursor.x, self->cursor.y);
+        term_fg(cursor);
+        term_bg(self->board[IDX(self->cursor.x, self->cursor.y)].revealed ? grey : darkgrey);
+        fputc('X', stdout);
+        term_refresh();
+    } while((ch = term_readch_timeout(500)) != '\x1b');
     return 0;
 }
 
@@ -268,8 +316,8 @@ game_t* minesweeper(void) {
     minesweeper_t *ms = malloc(sizeof(*ms));
     game_new(&ms->super, "Minesweeper");
     vft_cast(minesweeper_v, ms) = minesweeper_v_impl();
-    ms->lines = LINES;
-    ms->cols = COLS;
+    ms->lines = term_height();
+    ms->cols = term_width();
     ms->cursor = (pos){.x = ms->cols / 2, .y = ms->lines / 2};
     ms->board = calloc(sizeof(tile_t), ms->lines * ms->cols);
     memset(ms->board, 0, sizeof(tile_t) * ms->lines * ms->cols);

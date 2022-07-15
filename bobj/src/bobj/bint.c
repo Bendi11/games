@@ -27,7 +27,6 @@ BINT_OP(div, /)
 
 #undef BINT_OP
 
-
 vft_creator(
     bint_v,
     bint_v_impl,

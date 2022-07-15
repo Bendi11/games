@@ -2,8 +2,6 @@
 
 #include "bobj.h"
 
-
-
 /** Interface for addable objects */
 typedef struct add_i {
     void (*add)(bobj_t *lhs, bobj_t *rhs, bobj_t *res);

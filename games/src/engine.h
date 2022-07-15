@@ -1,16 +1,17 @@
 #pragma once
 
-#include <curses.h>
 #include <stddef.h>
 
 #include <bobj.h>
+
+#include "term/term.h"
 
 typedef struct game_t game_t;
 
 typedef struct game_v {
     bobj_v super;
     /** \brief Function to run for the game */
-    int (*run)(game_t*,WINDOW*);
+    int (*run)(game_t*);
 } game_v;
 
 extern game_v* (*game_v_impl)(void);
@@ -21,7 +22,7 @@ typedef struct game_t {
 } game_t;
 
 
-int game_run(game_t *game, WINDOW *win);
+int game_run(game_t *game);
 void game_new(game_t *game, char *name);
 
 typedef struct gamelist_s {

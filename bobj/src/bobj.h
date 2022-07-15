@@ -57,6 +57,9 @@ typedef struct bobj_t {
 /** \brief Run the destructor of the given object */
 void bobj_drop(bobj_t * const obj);
 
+/** \brief Get the name of the given object */
+inline const char* bobj_name(bobj_t *obj) { return vft_cast(bobj_c, obj)->name; }
+
 /** 
  * \brief Function used to mark a class method as virtual, i.e. it must be overriden by a base class. 
  * Any call to this method will result in a panic with a short message written to stderr

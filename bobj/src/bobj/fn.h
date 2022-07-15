@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bobj.h"
+#include "bobj/list.h"
 
 #include <stdbool.h>
 
@@ -8,8 +9,8 @@
 typedef struct bfn_t bfn_t;
 typedef struct bfn_c {
     bobj_c super;
-    bool (*typecheck)(bfn_t *self, size_t arg_count, bobj_t *args[]);
-    bobj_t* (*call)(bfn_t *self, size_t arg_count, bobj_t *args[]);
+    bool (*typecheck)(bfn_t *self, blist_t *args);
+    bobj_t* (*call)(bfn_t *self, blist_t *args);
 } bfn_c;
 
 /** 
@@ -20,17 +21,24 @@ typedef struct bfn_t {
 } bfn_t;
 
 
-bobj_t *bfn_call(bfn_t *fn, size_t args_len, bobj_t *args[]);
+bobj_t *bfn_call(bfn_t *fn, blist_t *args);
+inline bool bfn_typecheck(bfn_t *fn, blist_t *args) { return vft_cast(bfn_c, fn)->typecheck(fn, args); }
+bfn_t *bfn_new(bobj_t* (*fn)(blist_t *));
 
 extern bfn_c* (*bfn_c_impl)(void);
 
-typedef struct bbinaryfn_t bbinaryfn_t;
-typedef struct bbinaryfn_c {
+typedef struct bfnptr_fn_t bfnptr_fn_t;
+typedef struct bfnptr_fn_c {
     bfn_c super;
-    bool (*typecheck)(bbinaryfn_t *self, size_t arg_count, bobj_t *args[]);
-    bobj_t* (*call)(bbinaryfn_t *self, bobj_t *, bobj_t*);
-} bbinaryfn_c;
+} bfnptr_fn_c;
 
-typedef struct bbinaryfn_t {
+extern bfnptr_fn_c* (*bfnptr_fn_c_impl)(void);
+
+typedef struct bfnptr_fn_t {
     bfn_t super;
-} bbinaryfn_t;
+    bobj_t* (*fn)(blist_t*);
+    bool (*check)(blist_t*);
+} bfnptr_fn_t;
+
+
+void bfnptr_fn_new(bfnptr_fn_t *fn, bobj_t* (*fnptr)(blist_t*), bool (*check)(blist_t*));

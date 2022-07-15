@@ -3,6 +3,8 @@ set(SRC
     "src/bobj/bint.c"
     "src/bobj/iter.c"
     "src/bobj/array.c"
+    "src/bobj/str.c"
+    "src/bobj/iter/map.c"
 )
 
 add_library(bobj STATIC ${SRC})

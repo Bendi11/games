@@ -21,7 +21,6 @@ typedef struct game_t {
     char *name;
 } game_t;
 
-
 int game_run(game_t *game);
 void game_new(game_t *game, char *name);
 
@@ -33,11 +32,9 @@ typedef struct {
     bobj_c super;
 } engine_c;
 
-typedef struct engine_s {
+typedef struct engine_t {
     bobj_t super;
-    game_t **games;
-    uint32_t games_count;
-    uint32_t games_cap;
+    bbuf_list_t games;
 } engine_t;
 
 void engine_new(engine_t *self);

@@ -19,8 +19,19 @@ vft_creator(
     }
 )
 
+vft_creator(
+    bmutlist_c,
+    bmutlist_c_impl,
+    (bmutlist_c){
+        .add = (void*)bobj_virtual,
+        .super = *blist_c_impl(),
+    }
+)
+
 bobj_t* blist_at(blist_t *list, size_t idx) { return vft_cast(blist_c, list)->at(list, idx); }
 size_t blist_len(blist_t *list) { return vft_cast(blist_c, list)->len(list); }
+
+void bmutlist_add(bmutlist_t *list, bobj_t *elem) { vft_cast(bmutlist_c, list)->add(list, elem); }
 
 void bsingle_list_new(bsingle_list_t *list, bobj_t *elem) {
     vft_cast(bsingle_list_c, list) = bsingle_list_c_impl();
@@ -71,6 +82,16 @@ vft_creator(
     }
 )
 
+static void bbuf_list_add(bmutlist_t *list, bobj_t *elem) {
+    bbuf_list_t *self = (bbuf_list_t*)list;
+    if(self->len >= self->_cap) {
+        self->_cap = self->len * 2;
+        self->_buf = realloc(self->_buf, self->_cap * sizeof(bobj_t*));
+    }
+    self->_buf[self->len] = elem;
+    self->len += 1;
+}
+
 static size_t bbuf_list_len(blist_t *list) {
     bbuf_list_t *self = (bbuf_list_t*)list;
     return self->len;
@@ -78,6 +99,7 @@ static size_t bbuf_list_len(blist_t *list) {
 
 static bobj_t* bbuf_list_at(blist_t *list, size_t idx) {
     bbuf_list_t *self = (bbuf_list_t*)list;
+    if(blist_len(list) < idx) bobj_panic("Fuck");
     return self->_buf[idx];
 }
 
@@ -95,24 +117,27 @@ vft_creator(
     bbuf_list_c,
     bbuf_list_c_impl,
     (bbuf_list_c){
-        .super = (blist_c){
-            .super = (bobj_c){
-                .name = "bbuf_list",
-                .drop = bbuf_list_drop,
-                .size = sizeof(bbuf_list_t) - sizeof(bbuf_list_c*),
+        .super = (bmutlist_c){
+            .super = (blist_c){
+                .super = (bobj_c){
+                    .name = "bbuf_list",
+                    .drop = bbuf_list_drop,
+                    .size = sizeof(bbuf_list_t) - sizeof(bbuf_list_c*),
+                },
+                .len = bbuf_list_len,
+                .at = bbuf_list_at,
             },
-            .len = bbuf_list_len,
-            .at = bbuf_list_at,
-        }
+            .add = bbuf_list_add,
+        },
     }
 )
 
 void bbuf_list_new(bbuf_list_t *self, size_t len, bobj_t **elems) {
     vft_cast(bbuf_list_c, self) = bbuf_list_c_impl();
     self->len = len;
-    self->_cap = len;
-    self->_buf = calloc(len, sizeof(bobj_t*));
-    memcpy(self->_buf, elems, len * sizeof(bobj_t*));
+    self->_cap = len ? len : 1;
+    self->_buf = calloc(self->_cap, sizeof(bobj_t*));
+    len > 0 && memcpy(self->_buf, elems, len * sizeof(bobj_t*));
 }
 
 bbuf_list_t* h_bbuf_list(size_t len, bobj_t **elems) {

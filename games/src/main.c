@@ -31,5 +31,7 @@ int main(int argc, const char* argv[]) {
     engine_run(&engine);
     
     bobj_drop((bobj_t*)&engine);
+    
+    term_reset();
     return 0;
 }

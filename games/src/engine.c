@@ -1,31 +1,22 @@
 #include "engine.h"
 #include "bobj.h"
+#include "bobj/list.h"
 #include "term/term.h"
 
 #include <malloc.h>
 #include <string.h>
 
 void engine_add(engine_t *self, game_t *game) {
-    if(self->games_count == self->games_cap) {
-        self->games_cap *= 2;
-        self->games = realloc(self->games, self->games_cap);
-    }
-    self->games[self->games_count] = game;
-    self->games_count += 1;
+    bmutlist_add((bmutlist_t*)&self->games, (bobj_t*)game);
 }
 
 void engine_drop(bobj_t *erased_self) {
     engine_t *self = (engine_t*)erased_self;
-    while(self->games_count > 0) {
-        bobj_drop((bobj_t*)self->games[self->games_count - 1]);
-        self->games_count -= 1;
-    }
-    free(self->games);
+    bobj_drop((bobj_t*)&self->games);
 }
 
 int engine_run(engine_t *self) {
-    
-    game_run(self->games[0]);
+    game_run((game_t*)blist_at((blist_t*)&self->games, 0));
     int ch = 0;
     while((ch = term_readch()) != 27) {
         /*switch(ch) {
@@ -58,9 +49,7 @@ vft_creator(
 
 void engine_new(engine_t *self) {
     vft_cast(engine_c, self) = engine_c_impl();
-    self->games = calloc(5, sizeof(game_t*));
-    self->games_count = 0;
-    self->games_cap = 5;
+    bbuf_list_new(&self->games, 0, NULL);
 }
 
 int game_run(game_t *game) {

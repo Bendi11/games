@@ -60,6 +60,7 @@ static uint16_t height = 0;
 
 void term_reset(void) {
     tcsetattr(1, TCSANOW, &initial);
+    term_cursorshow(true);
     fputs(CSI "?1049l", stdout);
 }
 

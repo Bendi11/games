@@ -18,7 +18,7 @@ int chess_run(game_t *game) {
 
 void chess_drop(bobj_t *obj) {
     chess_t *self = (chess_t*)obj;
-    bobj_drop((bobj_t*)&self->super);
+    game_c_impl()->super.drop((bobj_t*)&self->super);
 }
 
 vft_creator(
@@ -37,8 +37,8 @@ vft_creator(
 )
 
 void chess_new(chess_t *self) {
+    game_new(&self->super, "chess");
     vft_cast(chess_c, self) = chess_c_impl();
-    self->super.name = "chess";
 }
 
 game_t *chess(void) {

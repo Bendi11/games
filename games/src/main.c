@@ -27,6 +27,7 @@ int main(int argc, const char* argv[]) {
     engine_t engine;
     engine_new(&engine);
     engine_add(&engine, minesweeper());
+    engine_add(&engine, chess());
     engine_run(&engine);
     
     bobj_drop((bobj_t*)&engine);

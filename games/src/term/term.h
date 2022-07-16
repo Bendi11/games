@@ -47,7 +47,7 @@ typedef struct {
     void (*on_resize)(uint16_t, uint16_t);
 } term_resize_cb_c;
 
-term_resize_cb_c* (*term_resize_cb_c_impl)(void);
+extern term_resize_cb_c* (*term_resize_cb_c_impl)(void);
 
 typedef struct term_resize_cb_t {
     bfn_t super;

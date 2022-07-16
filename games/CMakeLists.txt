@@ -3,6 +3,7 @@ set(SRC
     "src/mines.c"
     "src/engine.c"
     "src/term/ansi.c"
+    "src/chess.c"
 )
 
 set(CURSES_NEED_NCURSES TRUE)

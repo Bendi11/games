@@ -4,6 +4,7 @@ set(SRC
     "src/engine.c"
     "src/term/ansi.c"
     "src/chess.c"
+    "src/chess/movegen.c"
 )
 
 set(CURSES_NEED_NCURSES TRUE)

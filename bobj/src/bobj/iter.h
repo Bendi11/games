@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bobj.h"
+#include "bobj/fn.h"
 #include "bobj/list.h"
 
 typedef struct biter_t biter_t;
@@ -21,6 +22,9 @@ inline bobj_t *biter_next(biter_t *self) { return vft_cast(biter_c, self)->next(
 
 extern biter_c* (*biter_c_impl)(void);
 
+bobj_t* biter_fold(biter_t *self, bobj_t *acc, bfn_t *fold);
+
+
 typedef struct blist_iter_t blist_iter_t;
 typedef struct blist_iter_c {
     biter_c super;
@@ -34,4 +38,5 @@ typedef struct blist_iter_t {
 
 extern blist_iter_c* (*blist_iter_c_impl)(void);
 void blist_iter_new(blist_iter_t *self, blist_t *list);
-blist_iter_t blist_iter(blist_t *list);
+blist_iter_t s_blist_iter(blist_t *list);
+blist_iter_t* h_blist_iter(blist_t *list);

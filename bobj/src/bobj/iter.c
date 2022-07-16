@@ -1,5 +1,6 @@
 #include "iter.h"
 #include "bobj.h"
+#include "bobj/list.h"
 
 #include <malloc.h>
 
@@ -15,6 +16,16 @@ vft_creator(
         .next = (void*)bobj_virtual
     }
 )
+
+bobj_t* biter_fold(biter_t *self, bobj_t *acc, bfn_t *fold) {
+    bobj_t *next;
+    while((next = biter_next(self)) != NULL) {
+        bobj_t *argarray[2] = {acc, next};
+        bbuf_list_t args = s_bbuf_list(2, argarray);
+        bfn_call(fold, (blist_t*)&args, NULL); 
+    }
+    return acc;
+}
 
 static bobj_t* blist_iter_next(biter_t *iter) {
     blist_iter_t *self = (blist_iter_t*)iter;
@@ -47,8 +58,13 @@ vft_creator(
 void blist_iter_new(blist_iter_t *self, blist_t *list) {
     vft_cast(blist_iter_c, self) = blist_iter_c_impl();
 }
-blist_iter_t blist_iter(blist_t *list) {
+blist_iter_t s_blist_iter(blist_t *list) {
     blist_iter_t iter;
     blist_iter_new(&iter, list);
+    return iter;
+}
+blist_iter_t* h_blist_iter(blist_t *list) {
+    blist_iter_t *iter = malloc(sizeof(*iter));
+    blist_iter_new(iter, list);
     return iter;
 }

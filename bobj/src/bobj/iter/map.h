@@ -17,4 +17,5 @@ typedef struct biter_map_t {
 
 extern biter_map_c* (*biter_map_c_impl)(void);
 void biter_map_new(biter_map_t *self, bfn_t* map, biter_t *iter);
-biter_map_t biter_map(biter_t* iter, bfn_t* mapper);
+biter_map_t s_biter_map(biter_t* iter, bfn_t* mapper);
+biter_map_t* h_biter_map(biter_t* iter, bfn_t* mapper);

@@ -24,7 +24,6 @@ typedef struct bfn_t {
 bobj_c* bfn_return_ty(bfn_t *fn);
 void bfn_call(bfn_t *fn, blist_t *args, bobj_t* res);
 bool bfn_typecheck(bfn_t *fn, blist_t *args);
-bfn_t *bfn_new(bobj_t* (*fn)(blist_t *));
 
 extern bfn_c* (*bfn_c_impl)(void);
 

@@ -49,10 +49,6 @@ static bool foldstr_check(blist_t *args) {
 void bfn_call(bfn_t *fn, blist_t *args, bobj_t *res) {
     if(!vft_cast(bfn_c,fn)->typecheck(fn, args)) {
         blist_iter_t args_iter = s_blist_iter(args);
-        bobj_t *obj = NULL;
-        while((obj = biter_next((biter_t*)&args_iter)) != NULL) {
-            printf("%s\n", bobj_name(obj));
-        }
         bfnptr_fn_t args_tostr = s_bfnptr_fn(to_str, to_str_check, (bobj_c*)bstr_c_impl());
         bfnptr_fn_t tostr_fold = s_bfnptr_fn(foldstr, foldstr_check, NULL);
         bstr_t str = s_bstr();
@@ -70,7 +66,7 @@ void bfn_call(bfn_t *fn, blist_t *args, bobj_t *res) {
         );
     } else {
         vft_cast(bfn_c, fn)->call(fn, args, res);
-        if(!bobj_instanceof(fn->return_ty, res)) {
+        if(res != NULL && !bobj_instanceof(fn->return_ty, res)) {
             bobj_panic(
                 "Function of type %s returned a value of type %s when a return type of %s was declared",
                 bobj_name((bobj_t*)fn),

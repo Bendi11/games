@@ -3,6 +3,7 @@
 
 #include "bobj/int.h"
 #include "bobj/fn.h"
+#include "bobj/list.h"
 #include "bobj/str.h"
 #include "engine.h"
 #include "games.h"
@@ -23,7 +24,7 @@ int main(int argc, const char* argv[]) {
     //term_start();
     //term_raw();
 
-    bfn_t* fn = (bfn_t*)h_bfnptr_fn(call, check, (bobj_c*)bint_c_impl());
+    bfnptr_fn_t fn = s_bfnptr_fn(call, check, (bobj_c*)bint_c_impl());
     bint_t *args[2] = {h_bint(12), h_bint(13)};
     bint_t res;
         
@@ -31,7 +32,7 @@ int main(int argc, const char* argv[]) {
     bstr_appendcstr(&str, "Test", sizeof("Test"));
     printf("%s\n", bstr_cstr(&str));
 
-    bfn_call(fn, (blist_t*)h_bbuf_list(2, (bobj_t**)args), (bobj_t*)&res);
+    bfn_call((bfn_t*)&fn, (blist_t*)h_bbuf_list(2, (bobj_t**)args), (bobj_t*)&res);
     
     printf("%d\n", res.val);
     

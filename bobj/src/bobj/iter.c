@@ -57,6 +57,8 @@ vft_creator(
 
 void blist_iter_new(blist_iter_t *self, blist_t *list) {
     vft_cast(blist_iter_c, self) = blist_iter_c_impl();
+    self->list = list;
+    self->i = 0;
 }
 blist_iter_t s_blist_iter(blist_t *list) {
     blist_iter_t iter;

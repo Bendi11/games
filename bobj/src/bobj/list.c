@@ -20,7 +20,7 @@ vft_creator(
 )
 
 bobj_t* blist_at(blist_t *list, size_t idx) { return vft_cast(blist_c, list)->at(list, idx); }
-size_t blist_len(blist_t *list) { puts(bobj_name((bobj_t*)list)); return vft_cast(blist_c, list)->len(list); }
+size_t blist_len(blist_t *list) { return vft_cast(blist_c, list)->len(list); }
 
 void bsingle_list_new(bsingle_list_t *list, bobj_t *elem) {
     vft_cast(bsingle_list_c, list) = bsingle_list_c_impl();

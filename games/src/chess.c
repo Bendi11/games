@@ -93,8 +93,8 @@ typedef struct board_t {
 } board_t;
 
 typedef struct move_t {
-    square_t from : 4;
-    square_t to : 4;
+    square_t from : 6;
+    square_t to : 6;
     bool promote : 1;
     bool capture : 1;
     bool enpassant : 1;
@@ -135,14 +135,14 @@ bool chess_move_iter_drive(chess_move_iter_t *moves) {
         .promote = false,
         .enpassant = false,
         .castle = false,
-        .from = moves->current.from
+        .from = moves->current.from,
     };
     square_t from = moves->current.from;
     switch(moves->piece.type) {
         case P_PAWN: {
             square_t to;
             bool up_valid = (uint8_t)(moves->piece.color ? (from / 8 + 1) : (from / 8 - 1)) < 8;
-            square_t up = (moves->piece.color ? square_up(from, 1) : square_down(from, 1));
+            square_t up = moves->piece.color ? square_up(from, 1) : square_down(from, 1);
             switch(moves->stage.stage) {
                 case 0: {
                     moves->stage.stage += 1;
@@ -158,7 +158,6 @@ bool chess_move_iter_drive(chess_move_iter_t *moves) {
                     moves->stage.stage += 1;
                     if(up_valid) {
                         if(!moves->board->pieces[up].exists) {
-                            moves->current.from = from;
                             moves->current.to = up;
                             return true;
                         }
@@ -275,6 +274,19 @@ void board_new(board_t *board) {
     board->pieces[IDX(2, 7)] = board->pieces[IDX(5, 7)] = piece(C_BLACK, P_KNIGHT);
     board->pieces[IDX(3, 7)] = piece(C_BLACK, P_QUEEN);
     board->pieces[IDX(4, 7)] = piece(C_BLACK, P_KING);
+
+    for(uint8_t i = 0; i < 8; ++i) {
+        board->pieces[IDX(i, 1)] = piece(C_WHITE, P_PAWN);
+        board->pieces[IDX(i, 6)] = piece(C_BLACK, P_PAWN);
+    }
+}
+
+void board_render_tile(board_t *board, piece_t piece, bool white_tile) {
+
+}
+
+void board_render(board_t *board, uint16_t x, uint16_t y) {
+    
 }
 
 typedef struct chess_c {
@@ -289,6 +301,16 @@ typedef struct chess_t {
 
 int chess_run(game_t *game) {
     chess_t *self = (chess_t*)game;
+
+    chess_move_iter_t moves;
+    moves.stage.stage = 0;
+    moves.current = (move_t){.from = IDX(4, 0)};
+    moves.board = &self->board;
+    moves.piece = self->board.pieces[IDX(4, 0)];
+    
+    while(chess_move_iter_drive(&moves)) {
+        printf("Move to (%u, %u)\n", moves.current.to % 8, moves.current.to / 8);
+    }
 
     return 0;
 }
@@ -316,6 +338,7 @@ vft_creator(
 void chess_new(chess_t *self) {
     game_new(&self->super, "chess");
     vft_cast(chess_c, self) = chess_c_impl();
+    board_new(&self->board);
 }
 
 game_t *chess(void) {

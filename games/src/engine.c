@@ -16,7 +16,7 @@ void engine_drop(bobj_t *erased_self) {
 }
 
 int engine_run(engine_t *self) {
-    game_run((game_t*)blist_at((blist_t*)&self->games, 0));
+    game_run((game_t*)blist_at((blist_t*)&self->games, 1));
     int ch = 0;
     while((ch = term_readch()) != 27) {
         /*switch(ch) {

@@ -99,7 +99,6 @@ static size_t bbuf_list_len(blist_t *list) {
 
 static bobj_t* bbuf_list_at(blist_t *list, size_t idx) {
     bbuf_list_t *self = (bbuf_list_t*)list;
-    if(blist_len(list) < idx) bobj_panic("Fuck");
     return self->_buf[idx];
 }
 

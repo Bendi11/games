@@ -11,6 +11,8 @@ typedef struct bstr_c {
     void (*appendc)(bstr_t*, char);
     void (*appendbuf)(bstr_t*, const char*, size_t);
     void (*appendcstr)(bstr_t*, const char*);
+    char (*popc)(bstr_t*);
+    void (*clear)(bstr_t*);
 } bstr_c;
 
 char* bstr_cstr(bstr_t* self);
@@ -18,6 +20,8 @@ void bstr_append(bstr_t* self, bstr_t* other);
 void bstr_appendc(bstr_t* self, char c);
 void bstr_appendbuf(bstr_t* self, const char * data, size_t len);
 void bstr_appendcstr(bstr_t* self, const char *data);
+char bstr_popc(bstr_t* self);
+void bstr_clear(bstr_t *self);
 
 /**
  * Class containing an expandable buffer of characters with interoperobility

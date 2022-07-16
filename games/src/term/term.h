@@ -70,8 +70,16 @@ int term_readch_timeout(uint32_t);
 /** Clear the terminal buffer of any characters */
 void term_clear(void);
 
+/** Clear the current line of all characters and formatting */
+void term_clear_line(void);
+
 /** Move the cursor to (x, y) */
 void term_cursor(uint16_t x, uint16_t y);
+
+void term_cursorup(uint16_t n);
+void term_cursordown(uint16_t n);
+void term_cursorleft(uint16_t n);
+void term_cursorright(uint16_t n);
 
 /** Set the terminal foreground color to c */
 void term_fg(term_color_t c);

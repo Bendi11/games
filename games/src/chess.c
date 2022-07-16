@@ -1,10 +1,13 @@
 #include "bobj/iter.h"
+#include "bobj/str.h"
 #include "games.h"
 #include "term/term.h"
 #include "chess/chess.h"
 
+#include <ctype.h>
 #include <malloc.h>
 #include <memory.h>
+#include <string.h>
 
 const char * piece_glyphs[2][6] = {
 #ifdef CHESS_UNICODE
@@ -67,6 +70,52 @@ void board_new(board_t *board) {
     }
 }
 
+static move_t move_default = {
+    .from_file = 8,
+    .from_rank = 8,
+    .capture = false,
+    .castle = false,
+    .enpassant = false,
+    .promote = false,
+    .to = 0,
+};
+
+/** Attempt to parse a chess move in algebraic notation from the given string */
+static const char * move_parse(move_t *move, const char *str) {
+    *move = move_default; 
+    size_t len = strcspn(str, " \n\t\r");
+    if(strncmp(str, "O-O", len) == 0) {
+        move->castle = true;
+        move->castle_side = CASTLE_KINGSIDE;
+        return NULL;
+    } else if(strncmp(str, "O-O-O", len) == 0) {
+        move->castle = true;
+        move->castle_side = CASTLE_QUEENSIDE;
+        return NULL;
+    }
+    if(len < 2) return "no destination tile";
+    uint8_t to_rank = str[len - 1] - '1';
+    if(to_rank >= 8) return "destination rank is invalid";
+    uint8_t to_file = tolower(str[len - 2]) - 'a';
+    if(to_file >= 8) return "destination file is invalid";
+    move->to = IDX(to_file, to_rank);
+    len = len - 2;
+    while(len > 0) {
+        len -= 1;
+        char c = tolower(str[len]);
+        switch(c) {
+            case '?':
+            case '!': break;
+            case 'x': move->capture = true; break;
+            case 'a'...'h': move->from_file = c - 'a'; 
+            case '1'...'8': move->from_file = c - '1';
+            default: return "Invalid character";
+        } 
+    }
+
+    return NULL;
+}
+
 static term_color_t white_tile_c = (term_color_t){230, 230, 230};
 static term_color_t black_tile_c = {20, 20, 20};
 
@@ -117,9 +166,35 @@ int chess_run(game_t *game) {
     moves.from = IDX(4, 0);
     moves.board = &self->board;
     moves.piece = self->board.pieces[IDX(4, 0)];
-    
-    while(chess_move_iter_drive(&moves)) {
-        printf("Move to (%u, %u)\n", moves.current.to % 8, moves.current.to / 8);
+
+    bstr_t movestr = s_bstr();
+    for(;;) {
+        int in = '\0';
+        while(in != '\n') {
+            in = term_readch();
+            if(in == 127) {
+                bstr_popc(&movestr);
+            } else {
+                bstr_appendc(&movestr, in);
+            }
+            term_clear_line();
+            putchar('\r');
+            fwrite(movestr.data, sizeof(char), movestr.len, stdout);
+            term_refresh();
+        }
+        move_t move;
+        const char *error = move_parse(&move, bstr_cstr(&movestr));
+        if(error) {
+            term_cursorup(1);
+            term_clear_line();
+            printf("Error: %s\n", error);
+            term_cursorup(1);
+            usleep(1000000);
+            term_clear_line();
+            bstr_clear(&movestr);
+        } else {
+            break;
+        }
     }
     board_render(&self->board, term_width() / 2 - 35, 0);
 

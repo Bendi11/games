@@ -36,6 +36,18 @@ static void bstr_append_impl(bstr_t *self, bstr_t *other) {
     bstr_appendbuf_impl(self, other->data, other->len);
 }
 
+char bstr_popc_impl(bstr_t *self) {
+    if(self->len > 0) {
+        return self->data[self->len--];
+    } else {
+        return '\0';
+    }
+}
+
+void bstr_clear_impl(bstr_t *self) {
+    self->len = 0;
+}
+
 static char* bstr_c_str_impl(bstr_t* str) {
     bstr_appendc_impl(str, '\0');
     str->len -= 1;
@@ -47,6 +59,8 @@ void bstr_append(bstr_t* self, bstr_t* other) { return vft_cast(bstr_c, self)->a
 void bstr_appendc(bstr_t* self, char c) { return vft_cast(bstr_c, self)->appendc(self, c); }
 void bstr_appendbuf(bstr_t* self, const char * data, size_t len) { return vft_cast(bstr_c, self)->appendbuf(self, data, len); }
 void bstr_appendcstr(bstr_t* self, const char *data) { return vft_cast(bstr_c, self)->appendcstr(self, data); }
+char bstr_popc(bstr_t *self) { return vft_cast(bstr_c, self)->popc(self); }
+void bstr_clear(bstr_t *self) { return vft_cast(bstr_c, self)->clear(self); }
 
 vft_creator(
     bstr_c,
@@ -62,6 +76,8 @@ vft_creator(
         .appendc = bstr_appendc_impl,
         .appendbuf = bstr_appendbuf_impl,
         .appendcstr = bstr_appendcstr_impl,
+        .popc = bstr_popc_impl,
+        .clear = bstr_clear_impl,
     }
 )
 

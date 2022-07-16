@@ -108,7 +108,7 @@ void term_attr(term_attr_t attrs) {
         attrs.bold ? ";1" : "",
         attrs.italic ? ";3" : "",
         attrs.underline ? ";4" : "",
-        attrs.reset_all ? "0" : ""
+        attrs.reset_all ? ";0" : ""
     );
 }
 
@@ -174,12 +174,28 @@ int term_readch_timeout(uint32_t timeout) {
     }
 }
 
-void term_clear() {
+void term_clear_line(void) {
+    fputs(CSI "2K", stdout);
+}
+
+void term_clear(void) {
     fputs(CSI "2J", stdout);
 }
 
 void term_cursor(uint16_t x, uint16_t y) {
     fprintf(stdout, CSI "%u;%uf", y + 1, x + 1);
+}
+void term_cursorup(uint16_t n) {
+    fprintf(stdout, CSI "%uA", n);
+}
+void term_cursordown(uint16_t n) {
+    fprintf(stdout, CSI "%uB", n);
+}
+void term_cursorleft(uint16_t n) {
+    fprintf(stdout, CSI "%uD", n);
+}
+void term_cursorright(uint16_t n) {
+    fprintf(stdout, CSI "%uC", n);
 }
 void term_fg(term_color_t c) {
     fprintf(stdout, CSI "38;2;%u;%u;%um", c.r, c.g, c.b);

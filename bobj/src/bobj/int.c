@@ -1,61 +1,80 @@
-#include "int.h"
-#include "bobj.h"
+#include "int.h"	
+#include "bobj.h"	
+#include <malloc.h>	
 
-#include <malloc.h>
+static void empty_drop(bobj_t* obj) {}
 
-static void bint_drop(bobj_t *obj) {}
+#define BOBJ_DEF_PRIMITIVE(ty, contained)	\
+static inline void b##ty##_typecheck(bobj_t *lhs, bobj_t *rhs, char * op) {	\
+    if(	\
+        !bobj_instanceof(b##ty##_c_impl(), lhs) || 	\
+        !bobj_instanceof(b##ty##_c_impl(), rhs)	\
+    ) {	\
+        bobj_panic("Cannot %s %s to %s", op, vft_cast(bobj_c, lhs)->name, vft_cast(bobj_c, rhs)->name); 	\
+    }	\
+}	\
+	\
+static void b##ty##_add(bobj_t *lhs, bobj_t *rhs, bobj_t *res) {       \
+    b##ty##_typecheck(lhs, rhs, "add");                                         \
+    b##ty##_new((b##ty##_t*)res, ((b##ty##_t*)lhs)->val + ((b##ty##_t*)rhs)->val); \
+}\
+static void b##ty##_sub(bobj_t *lhs, bobj_t *rhs, bobj_t *res) {       \
+    b##ty##_typecheck(lhs, rhs, "subtract");                                         \
+    b##ty##_new((b##ty##_t*)res, ((b##ty##_t*)lhs)->val - ((b##ty##_t*)rhs)->val); \
+}\
+static void b##ty##_mul(bobj_t *lhs, bobj_t *rhs, bobj_t *res) {       \
+    b##ty##_typecheck(lhs, rhs, "multiply");                                         \
+    b##ty##_new((b##ty##_t*)res, ((b##ty##_t*)lhs)->val * ((b##ty##_t*)rhs)->val); \
+}\
+static void b##ty##_div(bobj_t *lhs, bobj_t *rhs, bobj_t *res) {       \
+    b##ty##_typecheck(lhs, rhs, "divide");                                         \
+    b##ty##_new((b##ty##_t*)res, ((b##ty##_t*)lhs)->val / ((b##ty##_t*)rhs)->val); \
+}\
+	\
+	\
+vft_creator(	\
+    b##ty##_c,	\
+    b##ty##_c_impl,	\
+    (b##ty##_c){	\
+        .super = (bobj_c){	\
+            .drop = empty_drop,	\
+            .size = sizeof(contained),	\
+            .name = "b" #ty,	\
+        },	\
+        .add = (add_i){.add = b##ty##_add},	\
+        .sub = (sub_i){.sub = b##ty##_sub},	\
+        .mul = (mul_i){.mul = b##ty##_mul},	\
+        .div = (div_i){.div = b##ty##_div},	\
+    }	\
+)	\
+	\
+void b##ty##_new(b##ty##_t *self, contained val) {	\
+    vft_cast(b##ty##_c, self) = b##ty##_c_impl();	\
+    self->val = val;	\
+}	\
+b##ty##_t* h_b##ty(contained val) {	\
+    b##ty##_t* i = malloc(sizeof(*i));	\
+    b##ty##_new(i, val);	\
+    return i;	\
+}	\
+b##ty##_t s_b##ty(contained val) {	\
+    b##ty##_t i;	\
+    b##ty##_new(&i, val);	\
+    return i;	\
+}	
 
-static inline void typecheck(bobj_t *lhs, bobj_t *rhs, char * op) {
-    if(
-        !bobj_instanceof(bint_c_impl(), lhs) || 
-        !bobj_instanceof(bint_c_impl(), rhs)
-    ) {
-        bobj_panic("Cannot %s %s to %s", op, vft_cast(bobj_c, lhs)->name, vft_cast(bobj_c, rhs)->name); 
-    }
-}
+BOBJ_DEF_PRIMITIVE(char, char)
+BOBJ_DEF_PRIMITIVE(short, short)
+BOBJ_DEF_PRIMITIVE(int, int)
+BOBJ_DEF_PRIMITIVE(long, long)
 
-#define BINT_OP(name, op)                                               \
-static void bint_##name (bobj_t *lhs, bobj_t *rhs, bobj_t *res) {       \
-    typecheck(lhs, rhs, #name);                                         \
-    bint_new((bint_t*)res, ((bint_t*)lhs)->val op ((bint_t*)rhs)->val); \
-}
+BOBJ_DEF_PRIMITIVE(u8, uint8_t)
+BOBJ_DEF_PRIMITIVE(u16, uint16_t)
+BOBJ_DEF_PRIMITIVE(u32, uint32_t)
+BOBJ_DEF_PRIMITIVE(u64, uint64_t)
+BOBJ_DEF_PRIMITIVE(i8, int8_t)
+BOBJ_DEF_PRIMITIVE(i16, int16_t)
+BOBJ_DEF_PRIMITIVE(i32, int32_t)
+BOBJ_DEF_PRIMITIVE(i64, int64_t)
 
-BINT_OP(add, +)
-BINT_OP(sub, -)
-BINT_OP(mul, *)
-BINT_OP(div, /)
-
-#undef BINT_OP
-
-vft_creator(
-    bint_c,
-    bint_c_impl,
-    (bint_c){
-        .super = (bobj_c){
-            .drop = bint_drop,
-            .size = sizeof(int),
-            .name = "bint",
-        },
-        .add = (add_i){.add = bint_add},
-        .sub = (sub_i){.sub = bint_sub},
-        .mul = (mul_i){.mul = bint_mul},
-        .div = (div_i){.div = bint_div},
-    }
-)
-
-void bint_new(bint_t *self, int val) {
-    vft_cast(bint_c, self) = bint_c_impl();
-    self->val = val;
-}
-
-bint_t* h_bint(int val) {
-    bint_t* i = malloc(sizeof(*i));
-    bint_new(i, val);
-    return i;
-}
-
-bint_t s_bint(int val) {
-    bint_t i;
-    bint_new(&i, val);
-    return i;
-}
+BOBJ_DEF_PRIMITIVE(size, size_t)

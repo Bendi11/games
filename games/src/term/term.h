@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bobj/fn.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -40,11 +41,22 @@ uint16_t term_width(void);
 /** Get the number of lines in this terminal */
 uint16_t term_height(void);
 
-/** Signature of a function to run when the given window is resized */
-typedef void (*term_resize_cb_t)(uint16_t w, uint16_t h);
+typedef struct term_resize_cb_t term_resize_cb_t;
+typedef struct {
+    bfn_c super;
+    void (*on_resize)(uint16_t, uint16_t);
+} term_resize_cb_c;
+
+term_resize_cb_c* (*term_resize_cb_c_impl)(void);
+
+typedef struct term_resize_cb_t {
+    bfn_t super;
+} term_resize_cb_t;
+
+void term_resize_cb_new(term_resize_cb_t *cb);
 
 /** Execute the given callback function when the terminal is resized */
-void term_on_resize(term_resize_cb_t cb);
+void term_on_resize(term_resize_cb_t *cb);
 
 /** Set terminal attributes for the next characters to be drawn */
 void term_attr(term_attr_t);

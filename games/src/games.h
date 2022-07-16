@@ -4,3 +4,4 @@
 
 /** \brief Get a new dynamic game interface object for the minesweeper game */
 game_t *minesweeper(void);
+game_t *chess(void);

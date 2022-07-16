@@ -1,3 +1,5 @@
+#include "bobj.h"
+#include "bobj/int.h"
 #include "term.h"
 
 #include <signal.h>
@@ -9,8 +11,45 @@
 
 #define CSI "\x1b["
 
+static void term_resize_cb_call(bfn_t *fn, blist_t *args, bobj_t *res) {
+    vft_cast(term_resize_cb_c, fn)->on_resize(
+        ((bu16_t*)blist_at(args, 0))->val, 
+        ((bu16_t*)blist_at(args, 1))->val
+    );
+}
+
+static bool term_resize_cb_check(bfn_t *fn, blist_t *args) {
+    return blist_len(args) == 2 &&
+        bobj_instanceof(bu16_c_impl(), blist_at(args, 0)) &&
+        bobj_instanceof(bu16_c_impl(), blist_at(args, 1));
+}
+
+static void term_resize_cb_drop(bobj_t* obj) {}
+
+void term_resize_cb_new(term_resize_cb_t *cb) {
+    vft_cast(term_resize_cb_c, cb) = term_resize_cb_c_impl();
+    cb->super.return_ty = NULL;
+}
+
+vft_creator(
+    term_resize_cb_c,
+    term_resize_cb_c_impl,
+    (term_resize_cb_c){
+        .on_resize = (void*)bobj_virtual,
+        .super = (bfn_c) {
+            .super = (bobj_c){
+                .name = "term_resize_cb",
+                .drop = term_resize_cb_drop,
+                .size = sizeof(term_resize_cb_t) - sizeof(term_resize_cb_c*),
+            },
+            .call = term_resize_cb_call,
+            .typecheck = term_resize_cb_check,
+        }
+    }
+)
+
 typedef struct resize_cb_list_s {
-    term_resize_cb_t cb;
+    term_resize_cb_t *cb;
     struct resize_cb_list_s *next;
 } resize_cb_list_t;
 
@@ -35,7 +74,7 @@ static void resize(int i) {
     height = size.ws_row;
     resize_cb_list_t *cb = resize_cb_list;
     while(cb != NULL) {
-        (cb->cb)(width, height);
+        vft_cast(term_resize_cb_c, &cb->cb)->on_resize(width, height);
         cb = cb->next;
     }
 }
@@ -79,7 +118,7 @@ void term_refresh() {
 uint16_t term_width() { return width; }
 uint16_t term_height() { return height; }
 
-void term_on_resize(term_resize_cb_t cb) {
+void term_on_resize(term_resize_cb_t *cb) {
     resize_cb_list_t **tail = &resize_cb_list;
     while(*tail != NULL) {
         tail = &(*tail)->next;

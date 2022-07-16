@@ -253,6 +253,7 @@ static size_t minesweeper_auto(minesweeper_t *self) {
         }
     }
     
+    if(to_flag_n == 0 && to_reveal_n == 0) return 0;
     term_refresh();
     usleep(1000000);
 

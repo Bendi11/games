@@ -27,7 +27,7 @@ static void to_str(blist_t* args, bobj_t* res) {
     const char *name = bobj_name(blist_at(args, 0));
     bstr_t *str = (bstr_t*)res;
     bstr_new(str);
-    bstr_appendcstr(str, name, strlen(name));
+    bstr_appendbuf(str, name, strlen(name));
     bstr_appendc(str, ',');
     bstr_appendc(str, ' ');
 }
@@ -60,7 +60,7 @@ void bfn_call(bfn_t *fn, blist_t *args, bobj_t *res) {
         );
 
         bobj_panic(
-            "Cannot call function of class %s with arguments (%s)",
+            "Cannot call function of class %s with arguments (%s)\n",
             bobj_name((bobj_t*)fn),
             bstr_cstr(&str)
         );

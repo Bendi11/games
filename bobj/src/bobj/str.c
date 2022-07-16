@@ -20,7 +20,7 @@ static void bstr_appendc_impl(bstr_t* str, char c) {
     str->len += 1;
 }
 
-static void bstr_appendcstr_impl(bstr_t* self, const char* data, size_t len) {
+static void bstr_appendbuf_impl(bstr_t* self, const char* data, size_t len) {
     if(self->len + len >= self->cap) {
         self->cap += len + 10;
         bstr_resize_impl(self, self->cap);
@@ -30,19 +30,23 @@ static void bstr_appendcstr_impl(bstr_t* self, const char* data, size_t len) {
     self->len += len;
 }
 
+static void bstr_appendcstr_impl(bstr_t* self, const char *data) { bstr_appendbuf_impl(self, data, strlen(data)); } 
+
 static void bstr_append_impl(bstr_t *self, bstr_t *other) {
-    bstr_appendcstr_impl(self, other->data, other->len);
+    bstr_appendbuf_impl(self, other->data, other->len);
 }
 
 static char* bstr_c_str_impl(bstr_t* str) {
     bstr_appendc_impl(str, '\0');
+    str->len -= 1;
     return str->data;
 }
 
 char* bstr_cstr(bstr_t* self) { return vft_cast(bstr_c, self)->cstr(self); }
 void bstr_append(bstr_t* self, bstr_t* other) { return vft_cast(bstr_c, self)->append(self, other); }
 void bstr_appendc(bstr_t* self, char c) { return vft_cast(bstr_c, self)->appendc(self, c); }
-void bstr_appendcstr(bstr_t* self, const char * data, size_t len) { return vft_cast(bstr_c, self)->appendcstr(self, data, len); }
+void bstr_appendbuf(bstr_t* self, const char * data, size_t len) { return vft_cast(bstr_c, self)->appendbuf(self, data, len); }
+void bstr_appendcstr(bstr_t* self, const char *data) { return vft_cast(bstr_c, self)->appendcstr(self, data); }
 
 vft_creator(
     bstr_c,
@@ -56,6 +60,7 @@ vft_creator(
         .cstr = bstr_c_str_impl,
         .append = bstr_append_impl,
         .appendc = bstr_appendc_impl,
+        .appendbuf = bstr_appendbuf_impl,
         .appendcstr = bstr_appendcstr_impl,
     }
 )

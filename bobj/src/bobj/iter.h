@@ -18,12 +18,11 @@ typedef struct biter_t {
     bobj_t super;
 } biter_t;
 
-inline bobj_t *biter_next(biter_t *self) { return vft_cast(biter_c, self)->next(self); }
+bobj_t *biter_next(biter_t *self);
 
 extern biter_c* (*biter_c_impl)(void);
 
 bobj_t* biter_fold(biter_t *self, bobj_t *acc, bfn_t *fold);
-
 
 typedef struct blist_iter_t blist_iter_t;
 typedef struct blist_iter_c {

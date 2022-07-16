@@ -47,6 +47,8 @@ typedef struct bobj_c {
     char *name;
 } bobj_c;
 
+extern bobj_c* (*bobj_c_impl)(void);
+
 /**
  * Base class for all objects in the object system
  */
@@ -56,11 +58,11 @@ typedef struct bobj_t {
 
 /** \brief Run the destructor of the given object */
 void bobj_drop(bobj_t * const obj);
-
-inline size_t bobj_size(bobj_t *obj) { return vft_cast(bobj_c, obj)->size; }
+/** \brief Get the size of the given object */
+size_t bobj_size(bobj_t *obj);
 
 /** \brief Get the name of the given object */
-inline const char* bobj_name(bobj_t *obj) { return vft_cast(bobj_c, obj)->name; }
+const char* bobj_name(bobj_t *obj);
 
 /** 
  * \brief Function used to mark a class method as virtual, i.e. it must be overriden by a base class. 

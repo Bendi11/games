@@ -321,7 +321,7 @@ game_t* minesweeper(void) {
     ms->lines = term_height();
     ms->cols = term_width();
     ms->cursor = (pos){.x = ms->cols / 2, .y = ms->lines / 2};
-    ms->board = calloc(sizeof(tile_t), ms->lines * ms->cols);
+    ms->board = calloc(ms->lines * ms->cols, sizeof(tile_t));
     memset(ms->board, 0, sizeof(tile_t) * ms->lines * ms->cols);
     ms->state = STATE_RUNNING;
     minesweeper_reset(ms);

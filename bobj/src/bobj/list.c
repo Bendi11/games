@@ -19,6 +19,14 @@ vft_creator(
     }
 )
 
+bobj_t* blist_at(blist_t *list, size_t idx) { return vft_cast(blist_c, list)->at(list, idx); }
+size_t blist_len(blist_t *list) { puts(bobj_name((bobj_t*)list)); return vft_cast(blist_c, list)->len(list); }
+
+void bsingle_list_new(bsingle_list_t *list, bobj_t *elem) {
+    vft_cast(bsingle_list_c, list) = bsingle_list_c_impl();
+    list->elem = elem;
+}
+
 static bobj_t* bsingle_list_at(blist_t *self, size_t idx) {
     if(idx == 0) {
         return ((bsingle_list_t*)(self))->elem;
@@ -39,6 +47,11 @@ static void bsingle_list_drop(bobj_t *oself) {
 bsingle_list_t* h_bsingle_list(bobj_t* elem) {
     bsingle_list_t *list = malloc(sizeof(*list));
     bsingle_list_new(list, elem);
+    return list;
+}
+bsingle_list_t s_bsingle_list(bobj_t* elem) {
+    bsingle_list_t list;
+    bsingle_list_new(&list, elem);
     return list;
 }
 
@@ -98,12 +111,18 @@ void bbuf_list_new(bbuf_list_t *self, size_t len, bobj_t **elems) {
     vft_cast(bbuf_list_c, self) = bbuf_list_c_impl();
     self->len = len;
     self->_cap = len;
-    self->_buf = calloc(sizeof(bobj_t*), len);
-    memccpy(self->_buf, elems, sizeof(bobj_t*), len);
+    self->_buf = calloc(len, sizeof(bobj_t*));
+    memcpy(self->_buf, elems, len * sizeof(bobj_t*));
 }
 
 bbuf_list_t* h_bbuf_list(size_t len, bobj_t **elems) {
     bbuf_list_t *list = malloc(sizeof(*list));
     bbuf_list_new(list, len, elems);
+    return list;
+}
+
+bbuf_list_t s_bbuf_list(size_t len, bobj_t **elems) {
+    bbuf_list_t list;
+    bbuf_list_new(&list, len, elems);
     return list;
 }

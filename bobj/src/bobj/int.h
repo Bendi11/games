@@ -21,3 +21,5 @@ typedef struct bint_t {
 
 /** \brief Initialize an instance of class `bint` */
 void bint_new(bint_t *, int val);
+bint_t s_bint(int val);
+bint_t* h_bint(int val);

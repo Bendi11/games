@@ -1,4 +1,4 @@
-#include "bint.h"
+#include "int.h"
 #include "bobj.h"
 
 #include <malloc.h>
@@ -46,4 +46,16 @@ vft_creator(
 void bint_new(bint_t *self, int val) {
     vft_cast(bint_c, self) = bint_c_impl();
     self->val = val;
+}
+
+bint_t* h_bint(int val) {
+    bint_t* i = malloc(sizeof(*i));
+    bint_new(i, val);
+    return i;
+}
+
+bint_t s_bint(int val) {
+    bint_t i;
+    bint_new(&i, val);
+    return i;
 }

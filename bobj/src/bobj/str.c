@@ -39,6 +39,11 @@ static char* bstr_c_str_impl(bstr_t* str) {
     return str->data;
 }
 
+char* bstr_cstr(bstr_t* self) { return vft_cast(bstr_c, self)->cstr(self); }
+void bstr_append(bstr_t* self, bstr_t* other) { return vft_cast(bstr_c, self)->append(self, other); }
+void bstr_appendc(bstr_t* self, char c) { return vft_cast(bstr_c, self)->appendc(self, c); }
+void bstr_appendcstr(bstr_t* self, const char * data, size_t len) { return vft_cast(bstr_c, self)->appendcstr(self, data, len); }
+
 vft_creator(
     bstr_c,
     bstr_c_impl,
@@ -57,7 +62,7 @@ vft_creator(
 
 void bstr_new(bstr_t* self) {
     vft_cast(bstr_c, self) = bstr_c_impl();
-    self->data = calloc(sizeof(char), 25);
+    self->data = calloc(25, sizeof(char));
     self->cap = 25;
     self->len = 0;
 }
@@ -65,5 +70,10 @@ void bstr_new(bstr_t* self) {
 bstr_t* h_bstr() {
     bstr_t* str = malloc(sizeof(*str));
     bstr_new(str);
+    return str;
+}
+bstr_t s_bstr() {
+    bstr_t str;
+    bstr_new(&str);
     return str;
 }

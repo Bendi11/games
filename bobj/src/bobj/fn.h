@@ -11,7 +11,6 @@ typedef struct bfn_c {
     bobj_c super;
     bool (*typecheck)(bfn_t *self, blist_t *args);
     void (*call)(bfn_t *self, blist_t *args, bobj_t* res);
-    bobj_c* (*return_ty)(bfn_t *self);
 } bfn_c;
 
 /** 
@@ -19,11 +18,12 @@ typedef struct bfn_c {
  */
 typedef struct bfn_t {
     bobj_t super;
+    bobj_c *return_ty;
 } bfn_t;
 
-inline bobj_c* bfn_return_ty(bfn_t *fn) { return vft_cast(bfn_c, fn)->return_ty(fn); }
+bobj_c* bfn_return_ty(bfn_t *fn);
 void bfn_call(bfn_t *fn, blist_t *args, bobj_t* res);
-inline bool bfn_typecheck(bfn_t *fn, blist_t *args) { return vft_cast(bfn_c, fn)->typecheck(fn, args); }
+bool bfn_typecheck(bfn_t *fn, blist_t *args);
 bfn_t *bfn_new(bobj_t* (*fn)(blist_t *));
 
 extern bfn_c* (*bfn_c_impl)(void);
@@ -45,10 +45,6 @@ typedef struct bfnptr_fn_t {
 } bfnptr_fn_t;
 
 
-void bfnptr_fn_new(bfnptr_fn_t *fn, bfnptr_fn_call_t ptr, bfnptr_fn_check_t check);
-inline bfnptr_fn_t s_bfnptr_fn(bfnptr_fn_call_t ptr, bfnptr_fn_check_t check) {
-    bfnptr_fn_t fn;
-    bfnptr_fn_new(&fn, ptr, check);
-    return fn;
-}
-bfnptr_fn_t* h_bfnptr_fn(bfnptr_fn_call_t ptr, bfnptr_fn_check_t check);
+void bfnptr_fn_new(bfnptr_fn_t *fn, bfnptr_fn_call_t ptr, bfnptr_fn_check_t check, bobj_c* return_ty);
+bfnptr_fn_t s_bfnptr_fn(bfnptr_fn_call_t ptr, bfnptr_fn_check_t check, bobj_c* return_ty);
+bfnptr_fn_t* h_bfnptr_fn(bfnptr_fn_call_t ptr, bfnptr_fn_check_t check, bobj_c* return_ty);

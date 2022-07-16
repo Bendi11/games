@@ -27,6 +27,8 @@ bobj_t* biter_fold(biter_t *self, bobj_t *acc, bfn_t *fold) {
     return acc;
 }
 
+bobj_t *biter_next(biter_t *self) { return vft_cast(biter_c, self)->next(self); }
+
 static bobj_t* blist_iter_next(biter_t *iter) {
     blist_iter_t *self = (blist_iter_t*)iter;
     if(self->i >= blist_len(self->list)) {
@@ -36,9 +38,7 @@ static bobj_t* blist_iter_next(biter_t *iter) {
     }
 }
 
-static void blist_iter_drop(bobj_t *o) {
-    //blist_iter_t *self = (blist_iter_t*)o;
-}
+static void blist_iter_drop(bobj_t *o) {}
 
 vft_creator(
     blist_iter_c,

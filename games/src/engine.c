@@ -58,7 +58,7 @@ vft_creator(
 
 void engine_new(engine_t *self) {
     vft_cast(engine_c, self) = engine_c_impl();
-    self->games = calloc(sizeof(game_t*), 5);
+    self->games = calloc(5, sizeof(game_t*));
     self->games_count = 0;
     self->games_cap = 5;
 }

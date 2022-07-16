@@ -20,11 +20,16 @@ vft_creator(
     }
 )
 
+bool bfn_typecheck(bfn_t *fn, blist_t *args) { return vft_cast(bfn_c, fn)->typecheck(fn, args); }
+bobj_c* bfn_return_ty(bfn_t *fn) { return fn->return_ty; }
+
 static void to_str(blist_t* args, bobj_t* res) {
     const char *name = bobj_name(blist_at(args, 0));
     bstr_t *str = (bstr_t*)res;
     bstr_new(str);
     bstr_appendcstr(str, name, strlen(name));
+    bstr_appendc(str, ',');
+    bstr_appendc(str, ' ');
 }
 
 static bool to_str_check(blist_t* args) {
@@ -44,8 +49,12 @@ static bool foldstr_check(blist_t *args) {
 void bfn_call(bfn_t *fn, blist_t *args, bobj_t *res) {
     if(!vft_cast(bfn_c,fn)->typecheck(fn, args)) {
         blist_iter_t args_iter = s_blist_iter(args);
-        bfnptr_fn_t args_tostr = s_bfnptr_fn(to_str, to_str_check);
-        bfnptr_fn_t tostr_fold = s_bfnptr_fn(foldstr, foldstr_check);
+        bobj_t *obj = NULL;
+        while((obj = biter_next((biter_t*)&args_iter)) != NULL) {
+            printf("%s\n", bobj_name(obj));
+        }
+        bfnptr_fn_t args_tostr = s_bfnptr_fn(to_str, to_str_check, (bobj_c*)bstr_c_impl());
+        bfnptr_fn_t tostr_fold = s_bfnptr_fn(foldstr, foldstr_check, NULL);
         bstr_t str = s_bstr();
         biter_map_t tostr_map = s_biter_map((biter_t*)&args_iter, (bfn_t*)&args_tostr);
         biter_fold(
@@ -55,12 +64,20 @@ void bfn_call(bfn_t *fn, blist_t *args, bobj_t *res) {
         );
 
         bobj_panic(
-            "Cannot call function of class %s with argument types (%s",
+            "Cannot call function of class %s with arguments (%s)",
             bobj_name((bobj_t*)fn),
             bstr_cstr(&str)
         );
     } else {
         vft_cast(bfn_c, fn)->call(fn, args, res);
+        if(!bobj_instanceof(fn->return_ty, res)) {
+            bobj_panic(
+                "Function of type %s returned a value of type %s when a return type of %s was declared",
+                bobj_name((bobj_t*)fn),
+                bobj_name((bobj_t*)res),
+                fn->return_ty->name
+            );
+        }
     }
 }
 
@@ -91,13 +108,19 @@ vft_creator(
 )
 
 
-void bfnptr_fn_new(bfnptr_fn_t *fn, bfnptr_fn_call_t fnptr, bfnptr_fn_check_t check) {
+void bfnptr_fn_new(bfnptr_fn_t *fn, bfnptr_fn_call_t fnptr, bfnptr_fn_check_t check, bobj_c *return_ty) {
     vft_cast(bfnptr_fn_c, fn) = bfnptr_fn_c_impl();
     fn->fn = fnptr;
     fn->check = check;
+    fn->super.return_ty = return_ty;
 }
-bfnptr_fn_t* h_bfnptr_fn(bfnptr_fn_call_t ptr, bfnptr_fn_check_t check) {
+bfnptr_fn_t* h_bfnptr_fn(bfnptr_fn_call_t ptr, bfnptr_fn_check_t check, bobj_c *return_ty) {
     bfnptr_fn_t *fn = malloc(sizeof(*fn));
-    bfnptr_fn_new(fn, ptr, check);
+    bfnptr_fn_new(fn, ptr, check, return_ty);
+    return fn;
+}
+bfnptr_fn_t s_bfnptr_fn(bfnptr_fn_call_t ptr, bfnptr_fn_check_t check, bobj_c *return_ty) {
+    bfnptr_fn_t fn;
+    bfnptr_fn_new(&fn, ptr, check, return_ty);
     return fn;
 }

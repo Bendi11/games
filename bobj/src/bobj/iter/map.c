@@ -8,7 +8,7 @@ static bobj_t* biter_map_next(biter_t *iter) {
     if(next != NULL) {
         bsingle_list_t elem;
         bsingle_list_new(&elem, next);
-        bobj_t *res = malloc(bfn_return_ty(self->map)->size);
+        bobj_t *res = malloc(bfn_return_ty(self->map)->size + sizeof(bobj_c*));
         bfn_call(self->map, (blist_t*)&elem, res);
         return res;
     } else {

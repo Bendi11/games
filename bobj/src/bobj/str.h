@@ -11,11 +11,11 @@ typedef struct bstr_c {
     void (*appendc)(bstr_t*, char);
     void (*appendcstr)(bstr_t*, const char*, size_t);
 } bstr_c;
+char* bstr_cstr(bstr_t* self);
+void bstr_append(bstr_t* self, bstr_t* other);
+void bstr_appendc(bstr_t* self, char c);
+void bstr_appendcstr(bstr_t* self, const char * data, size_t len);
 
-inline char* bstr_cstr(bstr_t* self) { return vft_cast(bstr_c, self)->cstr(self); }
-inline void bstr_append(bstr_t* self, bstr_t* other) { return vft_cast(bstr_c, self)->append(self, other); }
-inline void bstr_appendc(bstr_t* self, char c) { return vft_cast(bstr_c, self)->appendc(self, c); }
-inline void bstr_appendcstr(bstr_t* self, const char * data, size_t len) { return vft_cast(bstr_c, self)->appendcstr(self, data, len); }
 
 typedef struct bstr_t {
     bobj_t super;
@@ -26,9 +26,5 @@ typedef struct bstr_t {
 
 extern bstr_c* (*bstr_c_impl)(void);
 void bstr_new(bstr_t* self);
-inline bstr_t s_bstr(void) {
-    bstr_t str;
-    bstr_new(&str);
-    return str;
-}
+bstr_t s_bstr(void);
 bstr_t* h_bstr(void);

@@ -7,10 +7,6 @@
 #define BOBJ_DEC_PRIMITIVE(ty,contained)                         \
 typedef struct b##ty##_c {                                       \
     bobj_c super;                                                \
-    add_i add;                                                   \
-    sub_i sub;                                                   \
-    mul_i mul;                                                   \
-    div_i div;                                                   \
 } b##ty##_c;                                                     \
                                                                  \
 /** \brief Get the default vtable for the bint_t type */         \

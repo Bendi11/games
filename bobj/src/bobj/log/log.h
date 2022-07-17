@@ -1,11 +1,24 @@
 #pragma once
 
 #include "bobj/fn.h"
+#include "bobj/str.h"
+
+typedef struct blogmsg_t blogmsg_t;
+typedef struct blogmsg_c {
+    bobj_c super;
+} blogmsg_c;
+
+
+typedef struct blogmsg_t {
+    bobj_t super;
+    bstr_t msg;
+} blogmsg_t;
 
 
 typedef struct bloghook_t bloghook_t;
 typedef struct bloghook_c {
     bfn_c super;
+    void (*hook)(bloghook_t*,blogmsg_t*);
 } bloghook_c;
 
 /** 

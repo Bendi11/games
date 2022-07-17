@@ -29,8 +29,8 @@ static void b##ty##_mul(bobj_t *lhs, bobj_t *rhs, bobj_t *res) {       \
 static void b##ty##_div(bobj_t *lhs, bobj_t *rhs, bobj_t *res) {       \
     b##ty##_typecheck(lhs, rhs, "divide");                                         \
     b##ty##_new((b##ty##_t*)res, ((b##ty##_t*)lhs)->val / ((b##ty##_t*)rhs)->val); \
-}\
-	\
+}   \
+    \
 	\
 vft_creator(	\
     b##ty##_c,	\
@@ -40,11 +40,8 @@ vft_creator(	\
             .drop = empty_drop,	\
             .size = sizeof(contained),	\
             .name = "b" #ty,	\
+            .traits = btraitlist_add(s_btraitlist(), (btrait_t*)h_add_i(b##ty##_add)), \
         },	\
-        .add = (add_i){.add = b##ty##_add},	\
-        .sub = (sub_i){.sub = b##ty##_sub},	\
-        .mul = (mul_i){.mul = b##ty##_mul},	\
-        .div = (div_i){.div = b##ty##_div},	\
     }	\
 )	\
 	\

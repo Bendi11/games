@@ -3,6 +3,7 @@
 #include "term/term.h"
 
 #include <malloc.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -49,6 +50,7 @@ typedef struct minesweeper_t {
     uint16_t lines;
     uint16_t bombs;
     uint16_t unrevealed;
+    time_t start;
 } minesweeper_t;
 
 static term_color_t flag_fg = {255, 50, 50};
@@ -95,9 +97,10 @@ static void minesweeper_reset(minesweeper_t *self) {
     srand(time(NULL));
     self->state = STATE_RUNNING;
     self->bombs = 0;
+    self->start = 0;
     memset(self->board, 0, sizeof(tile_t) * self->lines * self->cols);
     for(uint16_t i = 0; i < self->lines * self->cols; ++i) {
-        if(rand() < RAND_MAX / 10) {
+        if(rand() < RAND_MAX / 7) {
             self->board[i].neighbors = BOMB; 
             self->bombs += 1;
         }
@@ -141,6 +144,7 @@ static void minesweeper_rendertile(minesweeper_t *self, uint16_t idx) {
 }
 
 static size_t minesweeper_reveal(minesweeper_t *self, uint16_t x, uint16_t y, bool autoreveal) {
+    if(self->start == 0) { self->start = time(NULL); }
     tile_t *current = &self->board[IDX(x, y)];
     if(current->flagged || (current->revealed && autoreveal)) { return 0; }
     !current->revealed && (self->unrevealed -= 1);
@@ -222,7 +226,6 @@ static void minesweeper_highlight(minesweeper_t *self, pos p, bool highlight) {
     }
 }
 
-
 static size_t minesweeper_auto(minesweeper_t *self) {
     size_t revealed = 0;
     uint16_t *to_flag = calloc(self->lines * self->cols, sizeof(*to_flag));
@@ -270,6 +273,20 @@ static size_t minesweeper_auto(minesweeper_t *self) {
     return revealed;
 }
 
+static void minesweeper_renderbottom(minesweeper_t * self) {
+    char tmbuf[64];
+    term_attr((term_attr_t){.reset_all = true});
+    time_t duration = time(NULL) - self->start;
+
+    term_cursor(0, self->lines);
+    term_clear_line();
+    if(self->start == 0) return;
+    snprintf(tmbuf, 64, "%zu S", duration);
+    term_cursor(self->cols / 2 - strlen(tmbuf), self->lines);
+    fputs(tmbuf, stdout);
+    term_refresh();
+} 
+
 static int minesweeper_run(game_t *game) {
     minesweeper_t *self = (minesweeper_t*)game;
     term_clear();
@@ -282,6 +299,7 @@ static int minesweeper_run(game_t *game) {
     int ch = 0;
     bool flash = false;
     do {
+        minesweeper_renderbottom(self);
         switch(ch) {
             case TERM_UP:
                 minesweeper_highlight(self, self->cursor, false);
@@ -290,7 +308,7 @@ static int minesweeper_run(game_t *game) {
             break;
             case TERM_DOWN:
                 minesweeper_highlight(self, self->cursor, false);
-                if(self->cursor.y < self->lines) { self->cursor.y += 1; } 
+                if(self->cursor.y < self->lines - 1) { self->cursor.y += 1; } 
                 minesweeper_highlight(self, self->cursor, true);
             break;
             case TERM_LEFT:
@@ -322,6 +340,7 @@ static int minesweeper_run(game_t *game) {
                 minesweeper_auto(self);
             } break;
             default: {
+                minesweeper_renderbottom(self);
                 if(flash) {
                     minesweeper_rendertile(self, IDX(self->cursor.x, self->cursor.y));
                     flash = !flash;
@@ -383,11 +402,12 @@ vft_creator(
     }
 )
 
+
 game_t* minesweeper(void) {
     minesweeper_t *ms = malloc(sizeof(*ms));
     game_new(&ms->super, "Minesweeper");
     vft_cast(minesweeper_v, ms) = minesweeper_v_impl();
-    ms->lines = term_height();
+    ms->lines = term_height() - 1;
     ms->cols = term_width();
     ms->cursor = (pos){.x = ms->cols / 2, .y = ms->lines / 2};
     ms->board = calloc(ms->lines * ms->cols, sizeof(tile_t));

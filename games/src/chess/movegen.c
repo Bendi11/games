@@ -104,7 +104,7 @@ bool chess_move_iter_drive(chess_move_iter_t *moves) {
                             return true;
                         } else {
                             direction += step;
-                            n = 0;
+                            n = 1;
                         }
                     } else {
                         moves->current.to = to;
@@ -114,7 +114,7 @@ bool chess_move_iter_drive(chess_move_iter_t *moves) {
                     }
                 } else {
                     direction += step;
-                    n = 0;
+                    n = 1;
                 }
            }
         } return false;
@@ -168,9 +168,9 @@ void chess_move_iter_new(chess_move_iter_t *iter, board_t *board, square_t from)
     iter->from = from;
     iter->piece = board->pieces[from];
     iter->stage = 
-        (iter->piece.type == P_QUEEN || iter->piece.type == P_ROOK) ? (movegen_stage_t){.direction = D_N, .n = 0} :
+        (iter->piece.type == P_QUEEN || iter->piece.type == P_ROOK) ? (movegen_stage_t){.direction = D_N, .n = 1} :
             (iter->piece.type == P_BISHOP) ?
-                (movegen_stage_t){.direction = D_NE, .n = 0} :
+                (movegen_stage_t){.direction = D_NE, .n = 1} :
                 (movegen_stage_t){.stage = 0};
 }
 

@@ -70,9 +70,10 @@ void board_new(board_t *board) {
     }
 }
 
-static move_t move_default = {
+move_t move_default = {
     .from_file = 8,
     .from_rank = 8,
+    .from_type = P_PAWN,
     .capture = false,
     .castle = false,
     .enpassant = false,
@@ -82,7 +83,8 @@ static move_t move_default = {
 
 /** Attempt to parse a chess move in algebraic notation from the given string */
 static const char * move_parse(move_t *move, const char *str) {
-    *move = move_default; 
+    *move = move_default;
+    move->from_type = P_PAWN;
     size_t len = strcspn(str, " \n\t\r");
     if(strncmp(str, "O-O", len) == 0) {
         move->castle = true;
@@ -107,13 +109,40 @@ static const char * move_parse(move_t *move, const char *str) {
             case '?':
             case '!': break;
             case 'x': move->capture = true; break;
-            case 'a'...'h': move->from_file = c - 'a'; 
-            case '1'...'8': move->from_file = c - '1';
+            case 'a': 
+            case 'c'...'h': move->from_file = c - 'a'; break;
+            case '1'...'8': move->from_rank = c - '1'; break;
+
+            case 'p': move->from_type = P_PAWN; break;
+            case 'n': move->from_type = P_KNIGHT; break;
+            case 'b': {
+                if(move->from_type == P_BISHOP) {
+                    move->from_file = 1;
+                } else {
+                    move->from_type = P_BISHOP;
+                }
+            } break;
+            case 'r': move->from_type = P_ROOK; break;
+            case 'q': move->from_type = P_QUEEN; break;
+            case 'k': move->from_type = P_KING; break;
             default: return "Invalid character";
         } 
     }
 
     return NULL;
+}
+
+bstr_t move_tostr(move_t *move) {
+    bstr_t string = s_bstr();
+    if(move->from_type != P_PAWN) { bstr_appendcstr(&string, piece_glyphs[C_WHITE][move->from_type]); }
+    if(move->from_file < 8) { bstr_appendc(&string, move->from_file + 'a'); }
+    if(move->from_rank < 8) { bstr_appendc(&string, move->from_rank + '1'); }
+    if(move->capture) { bstr_appendc(&string, 'x'); }
+
+    bstr_appendc(&string, (move->to % 8) + 'a');
+    bstr_appendc(&string, (move->to / 8) + '1');
+
+    return string;
 }
 
 static term_color_t white_tile_c = (term_color_t){230, 230, 230};
@@ -174,7 +203,7 @@ int chess_run(game_t *game) {
             in = term_readch();
             if(in == 127) {
                 bstr_popc(&movestr);
-            } else {
+            } else if(in != '\n') {
                 bstr_appendc(&movestr, in);
             }
             term_clear_line();
@@ -185,18 +214,20 @@ int chess_run(game_t *game) {
         move_t move;
         const char *error = move_parse(&move, bstr_cstr(&movestr));
         if(error) {
-            term_cursorup(1);
             term_clear_line();
-            printf("Error: %s\n", error);
-            term_cursorup(1);
-            usleep(1000000);
-            term_clear_line();
+            printf("\rError: %s\n", error);
             bstr_clear(&movestr);
+            term_refresh();
+            usleep(1000000);
         } else {
-            break;
+            bstr_clear(&movestr);
+            term_clear_line();
+            chess_make_move(&self->board, move);
+            board_render(&self->board, term_width() / 2 - 35, 0);
+            term_cursor(0, term_height() - 1);
+            term_refresh();
         }
     }
-    board_render(&self->board, term_width() / 2 - 35, 0);
 
     return 0;
 }

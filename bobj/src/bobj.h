@@ -23,15 +23,14 @@
 #define _BOBJ_EXPAND(x, y) _BOBJ_CONCAT(x, y)
 
 #define vft_creator(ty, fn_name, ...)                                            \
-static ty * _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__) = NULL;                 \
+static ty _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__);                          \
 ty* fn_name##_populate(void);                                                    \
 ty* (*fn_name)(void) = fn_name##_populate;                                       \
-ty* fn_name##_get(void) { return _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__); } \
+ty* fn_name##_get(void) { return &_BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__); } \
 ty* fn_name##_populate(void) {                                                   \
-    _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__) = malloc(sizeof(ty));           \
-    *_BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__) = __VA_ARGS__;                 \
+    _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__) = __VA_ARGS__;                 \
     fn_name = fn_name##_get;                                                     \
-    return _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__);                         \
+    return &_BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__);                         \
 }
 
 /** Check if the given pointer to an object is an instance of the given class */

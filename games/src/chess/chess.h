@@ -96,6 +96,7 @@ typedef struct board_t {
 typedef struct move_t {
     uint8_t from_rank : 4;
     uint8_t from_file : 4;
+    uint8_t from_type : 3;
     square_t to : 6;
     bool promote : 1;
     bool capture : 1;
@@ -106,6 +107,8 @@ typedef struct move_t {
         uint8_t castle_side;
     };
 } move_t;
+
+extern move_t move_default;
 
 typedef struct {
     union {
@@ -130,5 +133,8 @@ typedef struct {
     square_t from;
 } chess_move_iter_t;
 
+void chess_move_iter_new(chess_move_iter_t *iter, board_t *board, square_t from);
 bool chess_move_iter_drive(chess_move_iter_t *moves);
 
+square_t chess_move_valid(board_t *board, move_t move);
+bool chess_make_move(board_t *board, move_t move);

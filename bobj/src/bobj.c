@@ -25,7 +25,7 @@ const char* bobj_name(bobj_t *obj) { return vft_cast(bobj_c, obj)->name; }
 
 vft_creator(
     btrait_c,
-    btrait_c_impl,
+    bifmt_c_impl,
     (btrait_c){
         .super = (bobj_c){
             .name = "btrait",

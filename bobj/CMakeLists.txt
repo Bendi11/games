@@ -6,8 +6,10 @@ set(SRC
     "src/bobj/str.c"
     "src/bobj/fn.c"
     "src/bobj/list.c"
+    "src/bobj/fmt.c"
     "src/bobj/iter/map.c"
     "src/bobj/log/log.c"
+    "src/bobj/io/write.c"
 )
 
 add_library(bobj STATIC ${SRC})

@@ -81,7 +81,7 @@ typedef struct btrait_c {
     btrait_id_t id;
 } btrait_c;
 
-extern btrait_c* (*btrait_c_impl)(void);
+extern btrait_c* (*bifmt_c_impl)(void);
 
 /**
  * \brief Base class for all trait objects,
@@ -116,6 +116,9 @@ void bobj_default_drop(bobj_t *);
 BOBJ_FORMAT(printf, 1, 2)
 BOBJ_NORETURN
 void bobj_panic(const char * message, ...);
+
+/** \brief Require the passed class to implement the passed trait */
+void bobj_require_trait(btrait_id_t trait_id, bobj_c*);
 
 /** \brief Generate a new unique identifier to be used as a trait's ID */
 btrait_id_t btrait_newid(void);

@@ -40,7 +40,7 @@ vft_creator(	\
             .drop = empty_drop,	\
             .size = sizeof(contained),	\
             .name = "b" #ty,	\
-            .traits = btraitlist_add(s_btraitlist(), (btrait_t*)h_add_i(b##ty##_add)), \
+            .traits = btraitlist_add(s_btraitlist(), (btrait_t*)h_biadd(b##ty##_add)), \
         },	\
     }	\
 )	\

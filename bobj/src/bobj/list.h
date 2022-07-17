@@ -14,7 +14,6 @@ typedef struct blist_t {
     bobj_t super;
 } blist_t;
 
-
 bobj_t* blist_at(blist_t* list, size_t i);
 size_t blist_len(blist_t* list);
 extern blist_c* (*blist_c_impl)(void);

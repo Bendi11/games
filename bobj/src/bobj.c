@@ -75,7 +75,7 @@ btrait_t* btrait_get(bobj_c *classty, btrait_id_t hash) {
             return classty->traits._traits[i];
         }
     }
-    return 0;
+    return NULL;
 }
 
 btraitlist_t s_btraitlist(void) {
@@ -87,6 +87,19 @@ btraitlist_t s_btraitlist(void) {
 btrait_id_t btrait_newid(void) {
     static btrait_id_t idx = 0;
     return idx++;
+}
+
+
+btrait_t* bobj_require_trait(btrait_c *trait_c, bobj_c* classty) {
+    btrait_t *trait = btrait_get(classty, trait_c->id);
+    if(!trait) {
+        bobj_panic(
+            "Type %s must implement trait %s",
+            classty->name,
+            trait_c->super.name
+        );
+    }
+    return trait;
 }
 
 BOBJ_NORETURN void bobj_virtual() {

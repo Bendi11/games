@@ -118,7 +118,7 @@ BOBJ_NORETURN
 void bobj_panic(const char * message, ...);
 
 /** \brief Require the passed class to implement the passed trait */
-void bobj_require_trait(btrait_id_t trait_id, bobj_c*);
+btrait_t* bobj_require_trait(btrait_c *trait, bobj_c*);
 
 /** \brief Generate a new unique identifier to be used as a trait's ID */
 btrait_id_t btrait_newid(void);

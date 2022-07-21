@@ -35,7 +35,7 @@ ty* fn_name##_populate(void) {                                                  
 }
 
 /** Check if the given pointer to an object is an instance of the given class */
-#define bobj_instanceof(ty, ...) (((void*)ty) == (*(void**)__VA_ARGS__))
+#define bobj_instanceof(ty, ...) (((void*)ty) == (*(void**)(__VA_ARGS__)))
 
 typedef struct btrait_t btrait_t;
 typedef struct btraitlist_t {
@@ -75,6 +75,10 @@ const char* bobj_name(bobj_t *obj);
 
 typedef uint64_t btrait_id_t;
 
+/** 
+ * \brief Class that all traits objects extend, defining the ID of the trait
+ * \extends bobj_c
+ */
 typedef struct btrait_c {
     bobj_c super;
     /** Generated identifier for this trait */
@@ -87,6 +91,7 @@ extern btrait_c* (*bifmt_c_impl)(void);
  * \brief Base class for all trait objects,
  * as traits themselves are classes and trait implementations are
  * instances of the trait class
+ * \extends bobj_t
  */
 typedef struct btrait_t {
     bobj_t super;

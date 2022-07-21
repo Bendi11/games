@@ -1,4 +1,4 @@
-#include "write.h"
+#include "bobj/io/write.h"
 
 vft_creator(
     bwriter_c,

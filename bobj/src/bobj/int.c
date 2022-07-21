@@ -1,4 +1,4 @@
-#include "int.h"	
+#include "bobj/int.h"	
 #include "bobj.h"	
 #include <malloc.h>	
 

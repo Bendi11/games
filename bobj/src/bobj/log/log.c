@@ -1,4 +1,4 @@
-#include "log.h"
+#include "bobj/log/log.h"
 
 static void blogger_drop(bobj_t *obj) {
 

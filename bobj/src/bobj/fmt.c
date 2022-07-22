@@ -10,7 +10,7 @@ vft_creator(
         .super = (bobj_c){
             .size = sizeof(bifmt_t) - sizeof(btrait_c*),
             .drop = bobj_default_drop,
-            .traits = s_btraitlist(),
+            .traits = s_btraitmap(),
             .name = "bfmt"
         },
         .id = btrait_newid(),

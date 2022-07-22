@@ -3,6 +3,7 @@
 #include <malloc.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <memory.h>
 
 vft_creator(
     bobj_c,
@@ -10,7 +11,7 @@ vft_creator(
     (bobj_c){
         .size = 0,
         .drop = bobj_default_drop,
-        .traits = s_btraitlist(),
+        .traits = s_btraitmap(),
         .name = "bobj"
     }
 )
@@ -22,7 +23,6 @@ void bobj_drop(bobj_t *obj) {
 size_t bobj_size(bobj_t *obj) { return vft_cast(bobj_c, obj)->size; }
 const char* bobj_name(bobj_t *obj) { return vft_cast(bobj_c, obj)->name; }
 
-
 vft_creator(
     btrait_c,
     bifmt_c_impl,
@@ -31,57 +31,81 @@ vft_creator(
             .name = "btrait",
             .size = sizeof(btrait_t) - sizeof(btrait_c*),
             .drop = bobj_default_drop,
-            .traits = s_btraitlist(),
+            .traits = s_btraitmap(),
         },
     }
 )
 
-static void btraitlist_new_n(btraitlist_t *list, btrait_t **traits, size_t len) {
-    list->_traits = calloc(len, sizeof(btrait_t*));
-    list->_len = len;
-}
 
+typedef uint32_t btraitmap_idx_t;
+#define INVALID_TRAITIDX ((btraitmap_idx_t)-1)
 
-btraitlist_t btraitlist_add(btraitlist_t list, btrait_t *trait) {
-    for(size_t i = 0; i < list._len; ++i) {
-        if(vft_cast(btrait_c, list._traits[i])->id == vft_cast(btrait_c, trait)->id) {
-            list._traits[i] = trait;
-        }
+/** Get an index in the btraitmap_t's internal array for the given id */
+btraitmap_idx_t btraitmap_slot(btraitmap_t *map, btrait_id_t id) {
+    btraitmap_idx_t idx = id % map->_len;
+    while(map->_traits[idx] != NULL && vft_cast(btrait_c, map->_traits[idx])->id != id) {
+        idx = (idx + 1) % map->_len;
     }
-    
-    list._len += 1;
-    list._traits = realloc(list._traits, list._len * sizeof(btrait_t*));
-    list._traits[list._len - 1] = trait;
-    return list;
+    return idx;
 }
 
-static btraitlist_t btraitlist_combine(btraitlist_t existing, btraitlist_t *other) {
-    for(size_t i = 0; i < other->_len; ++i) {
-        existing = btraitlist_add(existing, other->_traits[i]);
+void btraitmap_add(btraitmap_t *map, btrait_t *trait) {
+    if(map->_len / 2 <= map->_occupied) {
+        btraitmap_t newmap;
+        newmap._len = map->_len * 2;
+        newmap._occupied = map->_occupied;
+        newmap._traits = calloc(newmap._len, sizeof(btrait_t*));
+        for(btraitmap_idx_t i = 0; i < map->_len; ++i) {
+            if(map->_traits[i] == NULL) continue;
+            btraitmap_add(&newmap, map->_traits[i]);
+        }
+        memcpy(map, &newmap, sizeof(newmap));
+    }
+    map->_occupied += 1;
+    map->_traits[btraitmap_slot(map, vft_cast(btrait_c, trait)->id)] = trait; 
+}
+
+void btraitmap_new_n(btraitmap_t *map, btrait_t **traits, size_t len) {
+    map->_traits = calloc(len * 2, sizeof(btrait_t*));
+    map->_len = len * 2;
+    map->_occupied = len;
+    for(size_t i = 0; i < len; ++i) {
+        btraitmap_add(map, traits[i]);
+    }
+}
+
+
+void btraitmap_extendn(btraitmap_t* existing, btrait_t **traits, size_t len) {
+    for(btraitmap_idx_t i = 0; i < existing->_len; ++i) {
+        btraitmap_add(existing, existing->_traits[i]);
+    }
+}
+
+btrait_t* btrait_get(bobj_c *classty, btrait_id_t hash) {
+    btraitmap_idx_t idx = btraitmap_slot(&classty->traits, hash);
+    return classty->traits._traits[idx];
+}
+
+btraitmap_t btraitmap_combine(btraitmap_t existing, btraitmap_t other) {
+    for(btraitmap_idx_t i = 0; i < other._len; ++i) {
+        if(other._traits[i] == NULL) continue;
+        btraitmap_idx_t idx = btraitmap_slot(&existing, vft_cast(btrait_c, other._traits[i])->id);
+        if(existing._traits[idx] != NULL) continue;
+        btraitmap_add(&existing, other._traits[i]);
     }
     return existing;
 }
 
-btraitlist_t btraitlist_extendn(btraitlist_t existing, btrait_t **traits, size_t len) {
-    btraitlist_t new;
-    btraitlist_new_n(&new, traits, len);
-    new = btraitlist_combine(new, &existing); 
-    return new;
-}
-
-btrait_t* btrait_get(bobj_c *classty, btrait_id_t hash) {
-    for(size_t i = 0; i < classty->traits._len; ++i) {
-        if(vft_cast(btrait_c, classty->traits._traits[i])->id == hash) {
-            return classty->traits._traits[i];
-        }
-    }
-    return NULL;
-}
-
-btraitlist_t s_btraitlist(void) {
-    btraitlist_t list;
-    btraitlist_new_n(&list, NULL, 0);
+btraitmap_t s_btraitmap(void) {
+    btraitmap_t list;
+    btraitmap_new_n(&list, NULL, 0);
     return list;
+}
+
+btraitmap_t s_btraitmap_n(btrait_t **traits, size_t len) {
+    btraitmap_t map;
+    btraitmap_new_n(&map, traits, len);
+    return map;
 }
 
 btrait_id_t btrait_newid(void) {

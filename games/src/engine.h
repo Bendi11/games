@@ -18,7 +18,7 @@ extern game_c* (*game_c_impl)(void);
 
 typedef struct game_t {
     bobj_t super;
-    char *name;
+    char * name;
 } game_t;
 
 int game_run(game_t *game);

@@ -31,16 +31,21 @@ static void b##ty##_div(bobj_t *lhs, bobj_t *rhs, bobj_t *res) {       \
     b##ty##_new((b##ty##_t*)res, ((b##ty##_t*)lhs)->val / ((b##ty##_t*)rhs)->val); \
 }   \
     \
-	\
-vft_creator(	\
-    b##ty##_c,	\
-    b##ty##_c_impl,	\
-    (b##ty##_c){	\
-        .super = (bobj_c){	\
-            .drop = empty_drop,	\
-            .size = sizeof(contained),	\
-            .name = "b" #ty,	\
-            .traits = btraitlist_add(s_btraitlist(), (btrait_t*)h_biadd(b##ty##_add)), \
+    \
+vft_creator(	                                      \
+    b##ty##_c,	                                      \
+    b##ty##_c_impl,	                                  \
+    (b##ty##_c){	                                  \
+        .super = (bobj_c){	                          \
+            .drop = empty_drop,	                      \
+            .size = sizeof(contained),	              \
+            .name = "b" #ty,	                      \
+            .traits = btraitmap_create((btrait_t*[]){ \
+                (btrait_t*)h_biadd(b##ty##_add),      \
+                (btrait_t*)h_bisub(b##ty##_sub),      \             
+                (btrait_t*)h_bimul(b##ty##_mul),      \             
+                (btrait_t*)h_bidiv(b##ty##_div)       \             
+            }) \
         },	\
     }	\
 )	\

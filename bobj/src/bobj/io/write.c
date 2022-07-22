@@ -6,7 +6,7 @@ vft_creator(
     (bwriter_c){
         .super = (bobj_c){
             .name = "bwriter",
-            .traits = s_btraitlist(),
+            .traits = s_btraitmap(),
             .drop = bobj_default_drop,
             .size = 0,
         },

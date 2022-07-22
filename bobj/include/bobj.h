@@ -23,6 +23,7 @@
 #define _BOBJ_CONCAT(x, y) x##y
 #define _BOBJ_EXPAND(x, y) _BOBJ_CONCAT(x, y)
 
+#define btraitmap_create(...) s_btraitmap_n((__VA_ARGS__), (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0])))
 #define vft_creator(ty, fn_name, ...)                                             \
 static ty _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__);                           \
 ty* fn_name##_populate(void);                                                     \
@@ -38,10 +39,12 @@ ty* fn_name##_populate(void) {                                                  
 #define bobj_instanceof(ty, ...) (((void*)ty) == (*(void**)(__VA_ARGS__)))
 
 typedef struct btrait_t btrait_t;
-typedef struct btraitlist_t {
+
+typedef struct btraitmap_t {
     btrait_t **_traits;
     uint32_t _len;
-} btraitlist_t;
+    uint32_t _occupied;
+} btraitmap_t;
 
 typedef struct bobj_t bobj_t;
 typedef struct bobj_c {
@@ -52,7 +55,7 @@ typedef struct bobj_c {
     /** \brief Name of this class */
     char *name;
     /** \brief List of all traits that this class implements */
-    btraitlist_t traits;
+    btraitmap_t traits;
 } bobj_c;
 
 /** \brief Default bobject implementation with purely virtual methods */
@@ -102,11 +105,11 @@ typedef struct btrait_t {
 /** \brief Get a pointer to an instance of a btrait_t for the given trait in the given class type */
 btrait_t* btrait_get(bobj_c *classty, btrait_id_t trait);
 
-
 /** \brief Append the given trait objects onto an existing trait list, returning the created list */
-btraitlist_t btraitlist_extendn(btraitlist_t existing, btrait_t **traits, size_t len);
-btraitlist_t btraitlist_add(btraitlist_t list, btrait_t *trait);
-btraitlist_t s_btraitlist(void);
+btraitmap_t btraitmap_combine(btraitmap_t existing, btraitmap_t other);
+void btraitmap_new_n(btraitmap_t* map, btrait_t **traits, size_t len);
+btraitmap_t s_btraitmap(void);
+btraitmap_t s_btraitmap_n(btrait_t **traits, size_t len);
 
 /** 
  * \brief Function used to mark a class method as virtual, i.e. it must be overriden by a base class. 

@@ -5,7 +5,7 @@
 static void empty_drop(bobj_t* obj) {}
 
 #define BOBJ_DEF_PRIMITIVE(ty, contained)	\
-static inline void b##ty##_typecheck(bobj_t *lhs, bobj_t *rhs, char * op) {	\
+static inline void b##ty##_typecheck(blist_t *args) {	\
     if(	\
         !bobj_instanceof(b##ty##_c_impl(), lhs) || 	\
         !bobj_instanceof(b##ty##_c_impl(), rhs)	\
@@ -35,21 +35,21 @@ static void b##ty##_div(bobj_t *lhs, bobj_t *rhs, bobj_t *res) {       \
 vft_creator(	                                      \
     b##ty##_c,	                                      \
     b##ty##_c_impl,	                                  \
-    (b##ty##_c){	                                  \
+    *self_class = (b##ty##_c){	                      \
         .super = (bobj_c){	                          \
             .drop = empty_drop,	                      \
             .size = sizeof(contained),	              \
             .name = "b" #ty,	                      \
             .traits = btraitmap_create((btrait_t*[]){ \
                 (btrait_t*)h_biadd(b##ty##_add),      \
-                (btrait_t*)h_bisub(b##ty##_sub),      \             
-                (btrait_t*)h_bimul(b##ty##_mul),      \             
-                (btrait_t*)h_bidiv(b##ty##_div)       \             
-            }) \
-        },	\
-    }	\
-)	\
-	\
+                (btrait_t*)h_bisub(b##ty##_sub),      \
+                (btrait_t*)h_bimul(b##ty##_mul),      \
+                (btrait_t*)h_bidiv(b##ty##_div)       \
+            })                                        \
+        },	                                          \
+    };	                                              \
+)	                                                  \
+	                                                  \
 void b##ty##_new(b##ty##_t *self, contained val) {	\
     vft_cast(b##ty##_c, self) = b##ty##_c_impl();	\
     self->val = val;	\

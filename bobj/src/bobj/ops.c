@@ -6,7 +6,7 @@
 vft_creator(
     btrait_c,
     biadd_c_impl,
-    (btrait_c){
+    *self_class = (btrait_c){
         .super = (bobj_c){
             .name = "biadd",
             .traits = s_btraitmap(),
@@ -14,13 +14,13 @@ vft_creator(
             .drop = bobj_default_drop,
         },
         .id = btrait_newid(),
-    }
+    };
 )
 
 vft_creator(
     btrait_c,
     bisub_c_impl,
-    (btrait_c){
+    *self_class = (btrait_c){
         .super = (bobj_c){
             .name = "bisub",
             .traits = s_btraitmap(),
@@ -28,13 +28,13 @@ vft_creator(
             .drop = bobj_default_drop,
         },
         .id = btrait_newid(),
-    }
+    };
 )
 
 vft_creator(
     btrait_c,
     bimul_c_impl,
-    (btrait_c){
+    *self_class = (btrait_c){
         .super = (bobj_c){
             .name = "bimul",
             .traits = s_btraitmap(),
@@ -42,13 +42,13 @@ vft_creator(
             .drop = bobj_default_drop,
         },
         .id = btrait_newid(),
-    }
+    };
 )
 
 vft_creator(
     btrait_c,
     bidiv_c_impl,
-    (btrait_c){
+    *self_class = (btrait_c){
         .super = (bobj_c){
             .name = "bidiv",
             .traits = s_btraitmap(),
@@ -56,7 +56,7 @@ vft_creator(
             .drop = bobj_default_drop,
         },
         .id = btrait_newid(),
-    }
+    };
 )
 
 void biadd_new(biadd_t *self, bfn_t *fn) {
@@ -97,4 +97,37 @@ bidiv_t* h_bidiv(bfn_t *fn) {
     bidiv_t *div = malloc(sizeof(*div));
     bidiv_new(div, fn);
     return div;
+}
+
+vft_creator(
+    btrait_c,
+    bieq_c_impl,
+    *self_class = (btrait_c){
+        .super = (bobj_c){
+            .drop = bobj_default_drop,
+            .name = "bieq",
+            .size = sizeof(bidiv_t) - sizeof(btrait_c*),
+            .traits = s_btraitmap(),
+        },
+        .id = btrait_newid(),
+    };
+)
+
+void bieq_new(bieq_t *self, bfn_t *eq) {
+    vft_cast(btrait_c, self) = bieq_c_impl();
+    self->eq = eq;
+}
+
+bieq_t* h_bieq(bfn_t *eq) {
+    bieq_t *self = malloc(sizeof(*self));
+    bieq_new(self, eq);
+    return self;
+}
+
+bool bieq_eq(bobj_t *lhs, bobj_t *rhs) {
+    bobj_require_trait(bieq_c_impl(), vft_cast(bobj_c, lhs));
+    bfn_call(
+        ((bieq_t*)btrait_get(vft_cast(bobj_c, lhs), bieq_c_impl()->id))->eq,
+
+    );
 }

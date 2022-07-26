@@ -14,6 +14,10 @@ typedef struct blist_c {
     size_t (*len)(blist_t*);
 } blist_c;
 
+/**
+ * \extends bobj_t
+ * \implements bieq_t
+ */
 typedef struct blist_t {
     bobj_t super;
 } blist_t;
@@ -31,6 +35,7 @@ typedef struct bmutlist_c {
 extern bmutlist_c* (*bmutlist_c_impl)(void);
 
 /**
+ * \extends blist_t
  * \brief Class that all mutable lists derive from
  */
 typedef struct bmutlist_t {
@@ -44,6 +49,9 @@ typedef struct bsingle_list_c {
     blist_c super;
 } bsingle_list_c;
 
+/**
+ * \extends blist_t
+ */
 typedef struct bsingle_list_t {
     blist_t super;
     bobj_t *elem;
@@ -54,6 +62,24 @@ void bsingle_list_new(bsingle_list_t *list, bobj_t *elem);
 bsingle_list_t s_bsingle_list(bobj_t *elem);
 bsingle_list_t* h_bsingle_list(bobj_t *elem);
 
+typedef struct {
+    blist_c super;
+} bdouble_list_c;
+
+/**
+ * \extends blist_t
+ */
+typedef struct {
+    blist_t super;
+    bobj_t *elems[2];
+} bdouble_list_t;
+
+extern bdouble_list_c* (*bdouble_list_c_impl)(void);
+void bdouble_list_new(bdouble_list_t *list, bobj_t *elem, bobj_t *elems[2]);
+bdouble_list_t s_bdouble_list(bobj_t *elems[2]);
+bdouble_list_t* h_bdouble_list(bobj_t *elems[2]);
+
+
 typedef struct bbuf_list_t bbuf_list_t;
 typedef struct {
     bmutlist_c super;
@@ -61,6 +87,9 @@ typedef struct {
 
 extern bbuf_list_c* (*bbuf_list_c_impl)(void);
 
+/**
+ * \extends bmutlist_t
+ */
 typedef struct bbuf_list_t {
     bmutlist_t super;
     bobj_t **_buf;

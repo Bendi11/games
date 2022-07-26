@@ -1,6 +1,8 @@
 #include "bobj/fn.h"
 #include "bobj.h"
 #include "bobj/iter/map.h"
+#include "bobj/list.h"
+#include "bobj/ops.h"
 #include "bobj/str.h"
 #include <malloc.h>
 #include <stdarg.h>
@@ -9,7 +11,7 @@
 vft_creator(
     bfn_c,
     fn_c_impl,
-    (bfn_c){
+    *self_class = (bfn_c){
         .call = (void*)bobj_virtual,
         .typecheck = (void*)bobj_virtual,
         .super = (bobj_c){
@@ -17,7 +19,7 @@ vft_creator(
             .name = "fn",
             .size = 0,
         }
-    }
+    };
 )
 
 bool bfn_typecheck(bfn_t *fn, blist_t *args) { return vft_cast(bfn_c, fn)->typecheck(fn, args); }
@@ -49,7 +51,9 @@ static bool foldstr_check(blist_t *args) {
 void bfn_call(bfn_t *fn, blist_t *args, bobj_t *res) {
     if(!vft_cast(bfn_c,fn)->typecheck(fn, args)) {
         blist_iter_t args_iter = s_blist_iter(args);
-        bfnptr_fn_t args_tostr = s_bfnptr_fn(to_str, to_str_check, (bobj_c*)bstr_c_impl());
+        bsingle_list_t tostr_params = s_bsingle_list((bobj_t*)h_bobj_class(bobj_c_impl()));
+        bfnptr_fn_t args_tostr = s_bfnptr_fn(to_str, (blist_t*)&tostr_params, (bobj_c*)bstr_c_impl());
+
         bfnptr_fn_t tostr_fold = s_bfnptr_fn(foldstr, foldstr_check, NULL);
         bstr_t str = s_bstr();
         biter_map_t tostr_map = s_biter_map((biter_t*)&args_iter, (bfn_t*)&args_tostr);
@@ -84,13 +88,13 @@ static void bfnptr_fn_call_impl(bfn_t *fn, blist_t* args, bobj_t* res) {
 }
 static bool bfnptr_fn_check_impl(bfn_t *fn, blist_t* args) {
     bfnptr_fn_t *self = (bfnptr_fn_t*)fn;
-    return self->check ? self->check(args) : true;
+    return self->check ? bieq_eq((bobj_t*)self->check, (bobj_t*)args) : true;
 }
 
 vft_creator(
     bfnptr_fn_c,
     bfnptr_fn_c_impl,
-    (bfnptr_fn_c){
+    *self_class = (bfnptr_fn_c){
         .super = (bfn_c){
             .super = (bobj_c){
                 .name = "bfnptr_fn",
@@ -100,23 +104,23 @@ vft_creator(
             .typecheck = bfnptr_fn_check_impl,
             .call = bfnptr_fn_call_impl,
         }
-    }
+    };
 )
 
 
-void bfnptr_fn_new(bfnptr_fn_t *fn, bfnptr_fn_call_t fnptr, bfnptr_fn_check_t check, bobj_c *return_ty) {
+void bfnptr_fn_new(bfnptr_fn_t *fn, bfnptr_fn_call_t fnptr, blist_t *params, bobj_c *return_ty) {
     vft_cast(bfnptr_fn_c, fn) = bfnptr_fn_c_impl();
     fn->fn = fnptr;
-    fn->check = check;
+    fn->check = params;
     fn->super.return_ty = return_ty;
 }
-bfnptr_fn_t* h_bfnptr_fn(bfnptr_fn_call_t ptr, bfnptr_fn_check_t check, bobj_c *return_ty) {
+bfnptr_fn_t* h_bfnptr_fn(bfnptr_fn_call_t ptr, blist_t *params, bobj_c *return_ty) {
     bfnptr_fn_t *fn = malloc(sizeof(*fn));
-    bfnptr_fn_new(fn, ptr, check, return_ty);
+    bfnptr_fn_new(fn, ptr, params, return_ty);
     return fn;
 }
-bfnptr_fn_t s_bfnptr_fn(bfnptr_fn_call_t ptr, bfnptr_fn_check_t check, bobj_c *return_ty) {
+bfnptr_fn_t s_bfnptr_fn(bfnptr_fn_call_t ptr, blist_t *params, bobj_c *return_ty) {
     bfnptr_fn_t fn;
-    bfnptr_fn_new(&fn, ptr, check, return_ty);
+    bfnptr_fn_new(&fn, ptr, params, return_ty);
     return fn;
 }

@@ -10,7 +10,7 @@
 #else
 #define BOBJ_READONLY(...)
 #define BOBJ_NORETURN
-#define BOBJ_FORMAT
+#define BOBJ_FORMAT(...)
 #endif
 
 
@@ -30,7 +30,8 @@ ty* fn_name##_populate(void);                                                   
 ty* (*fn_name)(void) = fn_name##_populate;                                        \
 ty* fn_name##_get(void) { return &_BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__); } \
 ty* fn_name##_populate(void) {                                                    \
-    _BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__) = __VA_ARGS__;                   \
+    ty *self_class = &_BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__);               \
+    __VA_ARGS__                                                                   \
     fn_name = fn_name##_get;                                                      \
     return &_BOBJ_EXPAND(_BOBJ_EXPAND(__, ty), __LINE__);                         \
 }
@@ -75,6 +76,28 @@ size_t bobj_size(bobj_t *obj);
 
 /** \brief Get the name of the given object */
 const char* bobj_name(bobj_t *obj);
+
+/**
+ * \extends bobj_c
+ * Class containing a pointer to a class structure
+ */
+typedef struct {
+    bobj_c super;
+} bclass_c;
+
+/** 
+ * \extends bobj_t
+ * Object that contains a pointer to a class structure
+ */
+typedef struct {
+    bobj_c *classty;
+} bclass_t;
+
+extern bclass_c* (*bclass_c_impl)(void);
+
+void bclass_new(bclass_t *self, bobj_c *classty);
+bclass_t s_bobj_class(bobj_c *classty);
+bclass_t* h_bobj_class(bobj_c *classty);
 
 typedef uint64_t btrait_id_t;
 

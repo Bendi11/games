@@ -389,7 +389,7 @@ static void minesweeper_drop(bobj_t *obj) {
 vft_creator(
     minesweeper_v,
     minesweeper_v_impl,
-    (minesweeper_v){
+    *self_class = (minesweeper_v){
         .super = (game_c){
             .super = (bobj_c){
                 .size = sizeof(minesweeper_t) - sizeof(minesweeper_v*),
@@ -399,7 +399,7 @@ vft_creator(
         },
         .reveal = minesweeper_reveal,
         .reset = minesweeper_reset,
-    }
+    };
 )
 
 

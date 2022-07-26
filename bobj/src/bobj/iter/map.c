@@ -25,7 +25,7 @@ static void biter_map_drop(bobj_t *o) {
 vft_creator(
     biter_map_c,
     biter_map_c_impl,
-    (biter_map_c){
+    *self_class = (biter_map_c){
         .super = (biter_c){
             .next = biter_map_next,
             .super = (bobj_c){
@@ -34,7 +34,7 @@ vft_creator(
                 .size = sizeof(biter_map_t) - sizeof(biter_map_c*)
             }
         }
-    }
+    };
 )
 
 void biter_map_new(biter_map_t *self, bfn_t *map, biter_t *iter) {

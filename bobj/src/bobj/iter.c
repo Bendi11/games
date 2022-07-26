@@ -7,14 +7,14 @@
 vft_creator(
     biter_c,
     biter_c_impl,
-    (biter_c){
+    *self_class = (biter_c){
         .super = (bobj_c){
             .name = "biter",
             .size = 0,
             .drop = bobj_virtual,
         },
         .next = (void*)bobj_virtual
-    }
+    };
 )
 
 bobj_t* biter_fold(biter_t *self, bobj_t *acc, bfn_t *fold) {
@@ -43,7 +43,7 @@ static void blist_iter_drop(bobj_t *o) {}
 vft_creator(
     blist_iter_c,
     blist_iter_c_impl,
-    (blist_iter_c){
+    *self_class = (blist_iter_c){
         .super = (biter_c){
             .next = blist_iter_next,
             .super = (bobj_c){
@@ -52,7 +52,7 @@ vft_creator(
                 .drop = blist_iter_drop
             }
         } 
-    }
+    };
 )
 
 void blist_iter_new(blist_iter_t *self, blist_t *list) {

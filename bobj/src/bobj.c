@@ -8,12 +8,12 @@
 vft_creator(
     bobj_c,
     bobj_c_impl,
-    (bobj_c){
+    *self_class = (bobj_c){
         .size = 0,
         .drop = bobj_default_drop,
         .traits = s_btraitmap(),
         .name = "bobj"
-    }
+    };
 )
 
 void bobj_drop(bobj_t *obj) {
@@ -24,16 +24,43 @@ size_t bobj_size(bobj_t *obj) { return vft_cast(bobj_c, obj)->size; }
 const char* bobj_name(bobj_t *obj) { return vft_cast(bobj_c, obj)->name; }
 
 vft_creator(
+    bclass_c,
+    bclass_c_impl,
+    *self_class = (bclass_c){
+        .super = (bobj_c){
+            .drop = bobj_default_drop,
+            .size = sizeof(bclass_t) - sizeof(bclass_c*),
+            .name = "bclass",
+            .traits = s_btraitmap(),
+        }
+    };
+)
+
+void bclass_new(bclass_t *self, bobj_c *classty) {
+    vft_cast(bclass_c, self) = bclass_c_impl();
+}
+bclass_t s_bobj_class(bobj_c *classty) {
+    bclass_t self;
+    bclass_new(&self, classty);
+    return self;
+}
+bclass_t* h_bobj_class(bobj_c *classty) {
+    bclass_t *self = malloc(sizeof(*self));
+    bclass_new(self, classty);
+    return self;
+}
+
+vft_creator(
     btrait_c,
     bifmt_c_impl,
-    (btrait_c){
+    *self_class = (btrait_c){
         .super = (bobj_c){
             .name = "btrait",
             .size = sizeof(btrait_t) - sizeof(btrait_c*),
             .drop = bobj_default_drop,
             .traits = s_btraitmap(),
         },
-    }
+    };
 )
 
 

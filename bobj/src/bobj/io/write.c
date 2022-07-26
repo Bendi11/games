@@ -3,7 +3,7 @@
 vft_creator(
     bwriter_c,
     bwriter_c_impl,
-    (bwriter_c){
+    *self_class = (bwriter_c){
         .super = (bobj_c){
             .name = "bwriter",
             .traits = s_btraitmap(),
@@ -11,5 +11,5 @@ vft_creator(
             .size = 0,
         },
         .write = (void*)bobj_virtual,
-    }
+    };
 )

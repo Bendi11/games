@@ -8,7 +8,7 @@
 vft_creator(
     blist_c,
     blist_c_impl,
-    (blist_c){
+    *self_class = (blist_c){
         .super = (bobj_c){
             .name = "blist",
             .drop = bobj_virtual,
@@ -16,16 +16,16 @@ vft_creator(
         },
         .at = (void*)bobj_virtual,
         .len = (void*)bobj_virtual,
-    }
+    };
 )
 
 vft_creator(
     bmutlist_c,
     bmutlist_c_impl,
-    (bmutlist_c){
+    *self_class = (bmutlist_c){
         .add = (void*)bobj_virtual,
         .super = *blist_c_impl(),
-    }
+    };
 )
 
 bobj_t* blist_at(blist_t *list, size_t idx) { return vft_cast(blist_c, list)->at(list, idx); }
@@ -66,10 +66,12 @@ bsingle_list_t s_bsingle_list(bobj_t* elem) {
     return list;
 }
 
+
+
 vft_creator(
     bsingle_list_c,
     bsingle_list_c_impl,
-    (bsingle_list_c){
+    *self_class = (bsingle_list_c){
         .super = (blist_c){
             .at = bsingle_list_at,
             .len = bsingle_list_len,
@@ -79,7 +81,25 @@ vft_creator(
                 .name = "bsingle_list"
             }
         }
-    }
+    };
+)
+
+static bobj_t* bdouble_list_at(blist_t *self, size_t idx) {
+
+}
+
+void bdouble_list_new(bdouble_list_t *list, bobj_t *elem, bobj_t *elems[2]);
+bdouble_list_t s_bdouble_list(bobj_t *elems[2]);
+bdouble_list_t* h_bdouble_list(bobj_t *elems[2]);
+
+vft_creator(
+    bdouble_list_c,
+    bdouble_list_c_impl,
+    *self_class = (bdouble_list_c){
+        .super = (blist_c){
+            .at = bdouble_list_at,
+        }
+    };
 )
 
 static void bbuf_list_add(bmutlist_t *list, bobj_t *elem) {
@@ -115,7 +135,7 @@ static void bbuf_list_drop(bobj_t *obj) {
 vft_creator(
     bbuf_list_c,
     bbuf_list_c_impl,
-    (bbuf_list_c){
+    *self_class = (bbuf_list_c){
         .super = (bmutlist_c){
             .super = (blist_c){
                 .super = (bobj_c){
@@ -128,7 +148,7 @@ vft_creator(
             },
             .add = bbuf_list_add,
         },
-    }
+    };
 )
 
 void bbuf_list_new(bbuf_list_t *self, size_t len, bobj_t **elems) {

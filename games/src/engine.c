@@ -38,13 +38,13 @@ int engine_run(engine_t *self) {
 vft_creator(
     engine_c,
     engine_c_impl,
-    (engine_c){
+    *self_class = (engine_c){
         .super = (bobj_c){
             .drop = engine_drop,
             .size = sizeof(engine_t) - sizeof(engine_c*),
             .name = "engine",
         }
-    }    
+    };
 )
 
 void engine_new(engine_t *self) {
@@ -69,13 +69,13 @@ void game_new(game_t *game, char *name) {
 vft_creator(
     game_c,
     game_c_impl,
-    (game_c){
+    *self_class = (game_c){
         .super = (bobj_c){
             .drop = game_drop,
             .size = sizeof(game_t) - sizeof(game_c),
             .name = "game",
         },
         .run = (void*)bobj_virtual,
-    }
+    };
 )
 

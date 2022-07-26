@@ -6,7 +6,7 @@
 vft_creator(
     btrait_c,
     bfmt_c_impl,
-    (btrait_c){
+    *self_class = (btrait_c){
         .super = (bobj_c){
             .size = sizeof(bifmt_t) - sizeof(btrait_c*),
             .drop = bobj_default_drop,
@@ -14,7 +14,7 @@ vft_creator(
             .name = "bfmt"
         },
         .id = btrait_newid(),
-    }
+    };
 )
 
 void bifmt_new(bifmt_t *self, bfmt_i_fmt_fn fmt) {

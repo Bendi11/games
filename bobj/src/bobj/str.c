@@ -65,7 +65,7 @@ void bstr_clear(bstr_t *self) { return vft_cast(bstr_c, self)->clear(self); }
 vft_creator(
     bstr_c,
     bstr_c_impl,
-    (bstr_c){
+    *self_class = (bstr_c){
         .super = (bobj_c){
             .name = "bstr_c",
             .drop = bstr_drop,
@@ -78,7 +78,7 @@ vft_creator(
         .appendcstr = bstr_appendcstr_impl,
         .popc = bstr_popc_impl,
         .clear = bstr_clear_impl,
-    }
+    };
 )
 
 void bstr_new(bstr_t* self) {

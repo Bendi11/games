@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 
-#define h_bbuflist_create(...) (h_bbuf_list((sizeof((bobj_t*[]){__VA_ARGS__}) / sizeof(((bobj_t*[]){__VA_ARGS__}))), (bobj_t*[]{__VA_ARGS__})))
-#define s_bbuflist_create(...) (s_bbuf_list((sizeof((bobj_t*[]){__VA_ARGS__}) / sizeof(((bobj_t*[]){__VA_ARGS__}))), (bobj_t*[]{__VA_ARGS__})))
+#define h_bbuflist_create(...) (h_bbuf_list((sizeof((bobj_t*[]){__VA_ARGS__}) / sizeof(((bobj_t*[]){__VA_ARGS__})[0])), (bobj_t*[]){__VA_ARGS__}))
+#define s_bbuflist_create(...) (s_bbuf_list((sizeof((bobj_t*[]){__VA_ARGS__}) / sizeof(((bobj_t*[]){__VA_ARGS__})[0])), (bobj_t*[]){__VA_ARGS__}))
 
 typedef struct blist_t blist_t;
 typedef struct blist_c {

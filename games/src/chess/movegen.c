@@ -154,11 +154,11 @@ static inline bool move_eq(move_t lhs, move_t rhs) {
 vft_creator(
     chess_move_iter_c,
     chess_move_iter_c_impl,
-    (chess_move_iter_c){
+    *self_class = (chess_move_iter_c){
         .super = (biter_c){
 
         }
-    }
+    };
 )
 
 void chess_move_iter_new(chess_move_iter_t *iter, board_t *board, square_t from) {

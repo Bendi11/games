@@ -1,5 +1,7 @@
 #include "bobj/ops.h"
 #include "bobj.h"
+#include "bobj/bool.h"
+#include "bobj/list.h"
 
 #include <malloc.h>
 
@@ -126,8 +128,13 @@ bieq_t* h_bieq(bfn_t *eq) {
 
 bool bieq_eq(bobj_t *lhs, bobj_t *rhs) {
     bobj_require_trait(bieq_c_impl(), vft_cast(bobj_c, lhs));
+    bbuf_list_t eq_args = s_bbuf_list(2, (bobj_t*[]){lhs, rhs});
+    bbool_t eq_res = s_bbool(false);
     bfn_call(
         ((bieq_t*)btrait_get(vft_cast(bobj_c, lhs), bieq_c_impl()->id))->eq,
-
+        (blist_t*)&eq_args,
+        (bobj_t*)&eq_res
     );
+    bobj_drop((bobj_t*)&eq_args);
+    return eq_res.val;
 }

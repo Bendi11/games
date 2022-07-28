@@ -2,6 +2,7 @@ set(SRC
     "src/bobj.c"
     "src/bobj/ops.c"
     "src/bobj/int.c"
+    "src/bobj/bool.c"
     "src/bobj/iter.c"
     "src/bobj/str.c"
     "src/bobj/fn.c"
